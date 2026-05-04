@@ -32,7 +32,8 @@ function App() {
       setIsAdmin(true);
       fetchEmployee(ADMIN_ID);
     }
-  }, []);
+ }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
 
   useEffect(() => {
     if (!stats?.on_shift || !stats?.open_shift) return;
