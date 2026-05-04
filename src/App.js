@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
 
-const API = 'http://localhost:3001';
+const API = 'https://hr-bot-production-eedd.up.railway.app';
 const ADMIN_ID = 7639287231;
 
 function App() {
