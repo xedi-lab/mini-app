@@ -226,7 +226,11 @@ function App() {
 
   return (
     <div className="app">
-      {screenLoading && <div className="screen-loader-bar"></div>}
+      {screenLoading && (
+  <div className="screen-loader-overlay">
+    <div className="screen-loader-spinner"></div>
+  </div>
+)}
 
       {message && (
         <div className={`toast ${message.type}`}>{message.text}</div>
