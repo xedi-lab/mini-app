@@ -9,7 +9,6 @@ function App() {
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [stats, setStats] = useState(null);
-  const [shifts, setShifts] = useState([]);
   const [plannedShifts, setPlannedShifts] = useState([]);
   const [pastShifts, setPastShifts] = useState([]);
   const [screen, setScreen] = useState('home');
