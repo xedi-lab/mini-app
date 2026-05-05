@@ -515,5 +515,117 @@ body {
   padding: 0.5rem;
 }
 
+.screen-loader-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: #fff;
+  z-index: 999;
+  animation: loadingBar 0.4s ease-out forwards;
+}
+
+@keyframes loadingBar {
+  0% { width: 0%; opacity: 1; }
+  70% { width: 80%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 0.9rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: #ccc;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.btn-secondary:active { background: rgba(255,255,255,0.08); }
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.form-group label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.form-input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  width: 100%;
+}
+
+.form-input:focus { border-color: rgba(255,255,255,0.25); }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.planned-badge {
+  font-size: 0.75rem;
+  color: #888;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  flex-shrink: 0;
+}
+
+.delete-btn:active { color: #ef6b6b; }
+
 .admin-stat-value { font-size: 0.95rem; font-weight: 700; }
 .admin-stat-label { font-size: 0.65rem; color: #555; }
