@@ -29,19 +29,40 @@ function App() {
   const [adminEmpShifts, setAdminEmpShifts] = useState([]);
   const [adminEmpPlanned, setAdminEmpPlanned] = useState([]);
 
-  useEffect(() => {
+ useEffect(() => {
     WebApp.ready();
     WebApp.expand();
+    
+    // Пробуем несколько способов получить ID пользователя
     const tgUser = WebApp.initDataUnsafe?.user;
-    if (tgUser) {
+    
+    if (tgUser && tgUser.id) {
       const id = parseInt(tgUser.id);
       setUserId(id);
       setIsAdmin(id === ADMIN_ID);
       fetchEmployee(id);
     } else {
-      setUserId(ADMIN_ID);
-      setIsAdmin(true);
-      fetchEmployee(ADMIN_ID);
+      // Парсим initData вручную если user не пришёл напрямую
+      try {
+        const params = new URLSearchParams(WebApp.initData);
+        const userStr = params.get('user');
+        if (userStr) {
+          const parsed = JSON.parse(decodeURIComponent(userStr));
+          const id = parseInt(parsed.id);
+          setUserId(id);
+          setIsAdmin(id === ADMIN_ID);
+          fetchEmployee(id);
+        } else {
+          // Показываем экран регистрации вместо данных админа
+          setLoading(false);
+          setUserId(null);
+          setIsAdmin(false);
+        }
+      } catch {
+        setLoading(false);
+        setUserId(null);
+        setIsAdmin(false);
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
