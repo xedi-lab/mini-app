@@ -28,41 +28,55 @@ function App() {
   const [newShift, setNewShift] = useState({ date: '', start: '', end: '', note: '' });
   const [adminEmpShifts, setAdminEmpShifts] = useState([]);
   const [adminEmpPlanned, setAdminEmpPlanned] = useState([]);
+  const [debugInfo, setDebugInfo] = useState('');
+  const [showDebug, setShowDebug] = useState(false);
 
- useEffect(() => {
+  useEffect(() => {
     WebApp.ready();
     WebApp.expand();
-    
-    // Пробуем несколько способов получить ID пользователя
+
+    let detectedId = null;
+    let debug = '';
+
+    // Способ 1: initDataUnsafe.user
     const tgUser = WebApp.initDataUnsafe?.user;
-    
+    debug += `Method1 (initDataUnsafe.user): ${JSON.stringify(tgUser)}\n`;
+
     if (tgUser && tgUser.id) {
-      const id = parseInt(tgUser.id);
-      setUserId(id);
-      setIsAdmin(id === ADMIN_ID);
-      fetchEmployee(id);
+      detectedId = parseInt(tgUser.id);
+      debug += `Detected via Method1: ${detectedId}\n`;
     } else {
-      // Парсим initData вручную если user не пришёл напрямую
+      // Способ 2: ручной парсинг initData
       try {
-        const params = new URLSearchParams(WebApp.initData);
+        const initData = WebApp.initData;
+        debug += `initData: ${initData ? initData.substring(0, 100) : 'empty'}\n`;
+        const params = new URLSearchParams(initData);
         const userStr = params.get('user');
         if (userStr) {
           const parsed = JSON.parse(decodeURIComponent(userStr));
-          const id = parseInt(parsed.id);
-          setUserId(id);
-          setIsAdmin(id === ADMIN_ID);
-          fetchEmployee(id);
+          detectedId = parseInt(parsed.id);
+          debug += `Detected via Method2: ${detectedId}\n`;
         } else {
-          // Показываем экран регистрации вместо данных админа
-          setLoading(false);
-          setUserId(null);
-          setIsAdmin(false);
+          debug += `Method2: no user in initData\n`;
         }
-      } catch {
-        setLoading(false);
-        setUserId(null);
-        setIsAdmin(false);
+      } catch (e) {
+        debug += `Method2 error: ${e.message}\n`;
       }
+    }
+
+    debug += `Platform: ${WebApp.platform}\n`;
+    debug += `Version: ${WebApp.version}\n`;
+    setDebugInfo(debug);
+
+    if (detectedId) {
+      setUserId(detectedId);
+      setIsAdmin(detectedId === ADMIN_ID);
+      fetchEmployee(detectedId);
+    } else {
+      // Не удалось определить пользователя — показываем экран ошибки
+      debug += `FINAL: Could not detect user ID\n`;
+      setDebugInfo(debug);
+      setLoading(false);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -101,9 +115,11 @@ function App() {
   };
 
   const fetchStats = async (id) => {
-    const res = await fetch(`${API}/employee/${id}/stats`);
-    const data = await res.json();
-    setStats(data);
+    try {
+      const res = await fetch(`${API}/employee/${id}/stats`);
+      const data = await res.json();
+      setStats(data);
+    } catch {}
   };
 
   const fetchPlanned = async (id) => {
@@ -123,9 +139,11 @@ function App() {
   };
 
   const fetchAdminStats = async () => {
-    const res = await fetch(`${API}/admin/stats`);
-    const data = await res.json();
-    setAdminStats(data);
+    try {
+      const res = await fetch(`${API}/admin/stats`);
+      const data = await res.json();
+      setAdminStats(data);
+    } catch {}
   };
 
   const fetchAdminEmpData = async (emp) => {
@@ -156,7 +174,7 @@ function App() {
   const openShift = async () => {
     setShiftLoading(true);
     try {
-      const id = userId || ADMIN_ID;
+      const id = userId;
       const res = await fetch(`${API}/employee/${id}/shift/open`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
@@ -175,7 +193,7 @@ function App() {
     setConfirmClose(false);
     setShiftLoading(true);
     try {
-      const id = userId || ADMIN_ID;
+      const id = userId;
       const res = await fetch(`${API}/employee/${id}/shift/close`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
@@ -203,8 +221,7 @@ function App() {
       showMessage('✅ Данные обновлены');
       setEditMode(false);
       fetchAdminStats();
-      const updated = { ...selectedEmployee, hourly_rate: parseFloat(editRate), workplace: editWorkplace };
-      setSelectedEmployee(updated);
+      setSelectedEmployee({ ...selectedEmployee, hourly_rate: parseFloat(editRate), workplace: editWorkplace });
     } catch {
       showMessage('Ошибка', 'error');
     }
@@ -237,21 +254,51 @@ function App() {
     </div>
   );
 
+  if (!userId) return (
+    <div className="not-found">
+      <div className="not-found-icon">⚠️</div>
+      <h2>Ошибка авторизации</h2>
+      <p>Не удалось определить пользователя. Открой приложение через бота.</p>
+      <div style={{marginTop:'1rem'}}>
+        <button onClick={() => setShowDebug(!showDebug)} style={{background:'none',border:'1px solid #333',color:'#555',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>
+          {showDebug ? 'Скрыть' : 'Debug'}
+        </button>
+        {showDebug && (
+          <pre style={{fontSize:'0.65rem',color:'#444',marginTop:'0.5rem',textAlign:'left',padding:'0.5rem',background:'#111',borderRadius:'8px',overflow:'auto',maxHeight:'200px'}}>
+            {debugInfo}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+
   if (!employee && !isAdmin) return (
     <div className="not-found">
       <div className="not-found-icon">🔒</div>
       <h2>Нет доступа</h2>
-      <p>Ты не зарегистрирован в системе. Обратись к администратору.</p>
+      <p>Ты не зарегистрирован в системе.</p>
+      <p style={{fontSize:'0.8rem',color:'#555',marginTop:'0.3rem'}}>Обратись к администратору.</p>
+      <p style={{fontSize:'0.7rem',color:'#444',marginTop:'0.5rem'}}>ID: {userId}</p>
+      <div style={{marginTop:'1rem'}}>
+        <button onClick={() => setShowDebug(!showDebug)} style={{background:'none',border:'1px solid #333',color:'#555',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>
+          {showDebug ? 'Скрыть' : 'Debug'}
+        </button>
+        {showDebug && (
+          <pre style={{fontSize:'0.65rem',color:'#444',marginTop:'0.5rem',textAlign:'left',padding:'0.5rem',background:'#111',borderRadius:'8px',overflow:'auto',maxHeight:'200px'}}>
+            {debugInfo}
+          </pre>
+        )}
+      </div>
     </div>
   );
 
   return (
     <div className="app">
       {screenLoading && (
-  <div className="screen-loader-overlay">
-    <div className="screen-loader-spinner"></div>
-  </div>
-)}
+        <div className="screen-loader-overlay">
+          <div className="screen-loader-spinner"></div>
+        </div>
+      )}
 
       {message && (
         <div className={`toast ${message.type}`}>{message.text}</div>
@@ -272,7 +319,6 @@ function App() {
 
       <div className="content">
 
-        {/* ГЛАВНАЯ */}
         {screen === 'home' && employee && (
           <div className="screen">
             <div className="greeting">
@@ -324,7 +370,6 @@ function App() {
           </div>
         )}
 
-        {/* ГРАФИК */}
         {screen === 'schedule' && (
           <div className="screen">
             <h2 className="screen-title">График</h2>
@@ -343,7 +388,6 @@ function App() {
           </div>
         )}
 
-        {/* ПРОФИЛЬ */}
         {screen === 'profile' && employee && !subScreen && (
           <div className="screen">
             <h2 className="screen-title">Профиль</h2>
@@ -358,13 +402,12 @@ function App() {
               <div className="info-row"><span className="info-label">Часов за месяц</span><span className="info-value">{stats?.total_hours ? parseFloat(stats.total_hours).toFixed(1) : '0'} ч</span></div>
               <div className="info-row"><span className="info-label">Заработано за месяц</span><span className="info-value">{stats?.total_earned ? parseFloat(stats.total_earned).toFixed(2) : '0.00'} ₽</span></div>
             </div>
-            <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId || ADMIN_ID); }}>
+            <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId); }}>
               📋 Учёт смен
             </button>
           </div>
         )}
 
-        {/* УЧЁТ СМЕН */}
         {screen === 'profile' && subScreen === 'history' && (
           <div className="screen">
             <div className="screen-header">
@@ -392,7 +435,6 @@ function App() {
           </div>
         )}
 
-        {/* ПОДДЕРЖКА */}
         {screen === 'support' && (
           <div className="screen">
             <h2 className="screen-title">Поддержка</h2>
@@ -405,7 +447,6 @@ function App() {
           </div>
         )}
 
-        {/* АДМИН - СПИСОК */}
         {screen === 'admin' && isAdmin && !selectedEmployee && (
           <div className="screen">
             <h2 className="screen-title">Сотрудники</h2>
@@ -432,14 +473,12 @@ function App() {
           </div>
         )}
 
-        {/* АДМИН - СОТРУДНИК */}
         {screen === 'admin' && isAdmin && selectedEmployee && !subScreen && (
           <div className="screen">
             <div className="screen-header">
-              <button className="back-btn" onClick={() => setSelectedEmployee(null)}>← Назад</button>
+              <button className="back-btn" onClick={() => { setSelectedEmployee(null); setEditMode(false); }}>← Назад</button>
               <h2 className="screen-title">{selectedEmployee.first_name} {selectedEmployee.last_name}</h2>
             </div>
-
             {!editMode ? (
               <>
                 <div className="profile-info">
@@ -470,7 +509,6 @@ function App() {
           </div>
         )}
 
-        {/* ИСТОРИЯ СМЕН СОТРУДНИКА (АДМИН) */}
         {screen === 'admin' && subScreen === 'emp-history' && (
           <div className="screen">
             <div className="screen-header">
@@ -496,14 +534,12 @@ function App() {
           </div>
         )}
 
-        {/* ПЛАНОВЫЕ СМЕНЫ СОТРУДНИКА (АДМИН) */}
         {screen === 'admin' && subScreen === 'emp-planned' && (
           <div className="screen">
             <div className="screen-header">
               <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
               <h2 className="screen-title">Плановые смены</h2>
             </div>
-
             <div className="edit-form">
               <div className="form-group">
                 <label>Дата</label>
@@ -523,9 +559,9 @@ function App() {
                 <label>Заметка (необязательно)</label>
                 <input className="form-input" value={newShift.note} onChange={e => setNewShift({...newShift, note: e.target.value})} placeholder="Например: ночная смена" />
               </div>
+              <button className="done-btn" onClick={() => document.activeElement.blur()}>Готово ✓</button>
               <button className="btn btn-open" style={{width:'100%'}} onClick={addPlannedShift}>+ Добавить смену</button>
             </div>
-
             <div className="shifts-list" style={{marginTop:'1rem'}}>
               {adminEmpPlanned.length === 0 ? (
                 <div className="empty">Плановых смен нет</div>
@@ -550,7 +586,7 @@ function App() {
           <span className="nav-icon">🏠</span>
           <span className="nav-label">Главная</span>
         </button>
-        <button className={`nav-item ${screen === 'schedule' ? 'active' : ''}`} onClick={() => { navigateTo('schedule'); }}>
+        <button className={`nav-item ${screen === 'schedule' ? 'active' : ''}`} onClick={() => navigateTo('schedule')}>
           <span className="nav-icon">📅</span>
           <span className="nav-label">График</span>
         </button>
