@@ -38,19 +38,16 @@ function App() {
     let detectedId = null;
     let debug = '';
 
-    // Способ 1: initDataUnsafe.user
     const tgUser = WebApp.initDataUnsafe?.user;
-    debug += `Method1 (initDataUnsafe.user): ${JSON.stringify(tgUser)}\n`;
-
+    debug += `Method1: ${JSON.stringify(tgUser)}\n`;
     if (tgUser && tgUser.id) {
       detectedId = parseInt(tgUser.id);
       debug += `Detected via Method1: ${detectedId}\n`;
-    } else {
-      // Способ 2: ручной парсинг initData
+    }
+
+    if (!detectedId) {
       try {
-        const initData = WebApp.initData;
-        debug += `initData: ${initData ? initData.substring(0, 100) : 'empty'}\n`;
-        const params = new URLSearchParams(initData);
+        const params = new URLSearchParams(WebApp.initData);
         const userStr = params.get('user');
         if (userStr) {
           const parsed = JSON.parse(decodeURIComponent(userStr));
@@ -64,20 +61,27 @@ function App() {
       }
     }
 
-    debug += `Platform: ${WebApp.platform}\n`;
-    debug += `Version: ${WebApp.version}\n`;
-    setDebugInfo(debug);
+    if (!detectedId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const uidParam = urlParams.get('uid');
+      if (uidParam) {
+        detectedId = parseInt(uidParam);
+        debug += `Detected via URL param: ${detectedId}\n`;
+      }
+    }
+
+    debug += `Platform: ${WebApp.platform}\nVersion: ${WebApp.version}\n`;
 
     if (detectedId) {
       setUserId(detectedId);
       setIsAdmin(detectedId === ADMIN_ID);
       fetchEmployee(detectedId);
     } else {
-      // Не удалось определить пользователя — показываем экран ошибки
       debug += `FINAL: Could not detect user ID\n`;
-      setDebugInfo(debug);
       setLoading(false);
     }
+
+    setDebugInfo(debug);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -174,12 +178,11 @@ function App() {
   const openShift = async () => {
     setShiftLoading(true);
     try {
-      const id = userId;
-      const res = await fetch(`${API}/employee/${id}/shift/open`, { method: 'POST' });
+      const res = await fetch(`${API}/employee/${userId}/shift/open`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         showMessage(`✅ Смена открыта в ${data.time} (НСК)`);
-        fetchStats(id);
+        fetchStats(userId);
       } else {
         showMessage(data.error, 'error');
       }
@@ -193,15 +196,14 @@ function App() {
     setConfirmClose(false);
     setShiftLoading(true);
     try {
-      const id = userId;
-      const res = await fetch(`${API}/employee/${id}/shift/close`, { method: 'POST' });
+      const res = await fetch(`${API}/employee/${userId}/shift/close`, { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         const msg = data.warning
           ? `⚠️ ${data.warning}\n✅ Отработано: ${data.hours_worked}ч | ${data.earned} ₽`
           : `✅ Смена закрыта! ${data.hours_worked}ч | ${data.earned} ₽`;
         showMessage(msg);
-        fetchStats(id);
+        fetchStats(userId);
       } else {
         showMessage(data.error, 'error');
       }
@@ -279,16 +281,6 @@ function App() {
       <p>Ты не зарегистрирован в системе.</p>
       <p style={{fontSize:'0.8rem',color:'#555',marginTop:'0.3rem'}}>Обратись к администратору.</p>
       <p style={{fontSize:'0.7rem',color:'#444',marginTop:'0.5rem'}}>ID: {userId}</p>
-      <div style={{marginTop:'1rem'}}>
-        <button onClick={() => setShowDebug(!showDebug)} style={{background:'none',border:'1px solid #333',color:'#555',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>
-          {showDebug ? 'Скрыть' : 'Debug'}
-        </button>
-        {showDebug && (
-          <pre style={{fontSize:'0.65rem',color:'#444',marginTop:'0.5rem',textAlign:'left',padding:'0.5rem',background:'#111',borderRadius:'8px',overflow:'auto',maxHeight:'200px'}}>
-            {debugInfo}
-          </pre>
-        )}
-      </div>
     </div>
   );
 
@@ -300,9 +292,7 @@ function App() {
         </div>
       )}
 
-      {message && (
-        <div className={`toast ${message.type}`}>{message.text}</div>
-      )}
+      {message && <div className={`toast ${message.type}`}>{message.text}</div>}
 
       {confirmClose && (
         <div className="confirm-overlay">
