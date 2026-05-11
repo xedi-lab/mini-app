@@ -30,6 +30,9 @@ function App() {
   const [adminEmpPlanned, setAdminEmpPlanned] = useState([]);
   const [debugInfo, setDebugInfo] = useState('');
   const [showDebug, setShowDebug] = useState(false);
+  const [regStatus, setRegStatus] = useState(null);
+  const [regForm, setRegForm] = useState({ first_name: '', last_name: '' });
+  const [regLoading, setRegLoading] = useState(false);
 
   useEffect(() => {
     WebApp.ready();
@@ -71,6 +74,7 @@ function App() {
     }
 
     debug += `Platform: ${WebApp.platform}\nVersion: ${WebApp.version}\n`;
+    setDebugInfo(debug);
 
     if (detectedId) {
       setUserId(detectedId);
@@ -80,8 +84,6 @@ function App() {
       debug += `FINAL: Could not detect user ID\n`;
       setLoading(false);
     }
-
-    setDebugInfo(debug);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -111,11 +113,48 @@ function App() {
       setEmployee(data);
       fetchStats(id);
       fetchPlanned(id);
+      setLoading(false);
     } catch {
       setEmployee(null);
-    } finally {
+      if (id !== ADMIN_ID) {
+        await checkRegStatus(id);
+      }
       setLoading(false);
     }
+  };
+
+  const checkRegStatus = async (id) => {
+    try {
+      const res = await fetch(`${API}/register/status/${id}`);
+      const data = await res.json();
+      setRegStatus(data.status);
+    } catch {
+      setRegStatus('none');
+    }
+  };
+
+  const submitRegistration = async () => {
+    if (!regForm.first_name.trim() || !regForm.last_name.trim()) {
+      showMessage('Введи имя и фамилию', 'error');
+      return;
+    }
+    setRegLoading(true);
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ telegram_id: userId, first_name: regForm.first_name.trim(), last_name: regForm.last_name.trim() })
+      });
+      const data = await res.json();
+      if (data.success || data.status === 'pending') {
+        setRegStatus('pending');
+      } else {
+        showMessage(data.error || 'Ошибка', 'error');
+      }
+    } catch {
+      showMessage('Ошибка соединения', 'error');
+    }
+    setRegLoading(false);
   };
 
   const fetchStats = async (id) => {
@@ -271,6 +310,49 @@ function App() {
           </pre>
         )}
       </div>
+    </div>
+  );
+
+  if (!employee && !isAdmin && regStatus === 'none') return (
+    <div className="onboarding">
+      {message && <div className={`toast ${message.type}`}>{message.text}</div>}
+      <div className="onboarding-content">
+        <div className="onboarding-icon">👋</div>
+        <h1 className="onboarding-title">Добро пожаловать</h1>
+        <p className="onboarding-subtitle">Заполни данные чтобы подать заявку на доступ</p>
+        <div className="onboarding-form">
+          <div className="form-group">
+            <label>Имя</label>
+            <input className="form-input" placeholder="Иван" value={regForm.first_name} onChange={e => setRegForm({...regForm, first_name: e.target.value})} />
+          </div>
+          <div className="form-group">
+            <label>Фамилия</label>
+            <input className="form-input" placeholder="Иванов" value={regForm.last_name} onChange={e => setRegForm({...regForm, last_name: e.target.value})} />
+          </div>
+          <button className="onboarding-btn" onClick={submitRegistration} disabled={regLoading}>
+            {regLoading ? 'Отправляем...' : 'Отправить заявку'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!employee && !isAdmin && regStatus === 'pending') return (
+    <div className="onboarding">
+      <div className="onboarding-content">
+        <div className="onboarding-icon">⏳</div>
+        <h1 className="onboarding-title">Заявка отправлена</h1>
+        <p className="onboarding-subtitle">Администратор рассматривает твою заявку. Как только она будет одобрена — ты получишь доступ.</p>
+        <button className="onboarding-btn-secondary" onClick={() => checkRegStatus(userId)}>
+          Проверить статус
+        </button>
+      </div>
+    </div>
+  );
+
+  if (!employee && !isAdmin) return (
+    <div className="loader-screen">
+      <div className="loader"></div>
     </div>
   );
 
