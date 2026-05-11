@@ -274,16 +274,6 @@ function App() {
     </div>
   );
 
-  if (!employee && !isAdmin) return (
-    <div className="not-found">
-      <div className="not-found-icon">🔒</div>
-      <h2>Нет доступа</h2>
-      <p>Ты не зарегистрирован в системе.</p>
-      <p style={{fontSize:'0.8rem',color:'#555',marginTop:'0.3rem'}}>Обратись к администратору.</p>
-      <p style={{fontSize:'0.7rem',color:'#444',marginTop:'0.5rem'}}>ID: {userId}</p>
-    </div>
-  );
-
   return (
     <div className="app">
       {screenLoading && (
