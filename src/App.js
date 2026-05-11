@@ -343,11 +343,11 @@ function App() {
         <div className="onboarding-form">
           <div className="form-group">
             <label>Имя</label>
-            <input className="form-input" placeholder="Иван" value={regForm.first_name} onChange={e => setRegForm({...regForm, first_name: e.target.value})} />
+            <input className="form-input" placeholder="Хуйлан" value={regForm.first_name} onChange={e => setRegForm({...regForm, first_name: e.target.value})} />
           </div>
           <div className="form-group">
             <label>Фамилия</label>
-            <input className="form-input" placeholder="Иванов" value={regForm.last_name} onChange={e => setRegForm({...regForm, last_name: e.target.value})} />
+            <input className="form-input" placeholder="Хуев" value={regForm.last_name} onChange={e => setRegForm({...regForm, last_name: e.target.value})} />
           </div>
           <button className="onboarding-btn" onClick={submitRegistration} disabled={regLoading}>
             {regLoading ? 'Отправляем...' : 'Отправить заявку'}
