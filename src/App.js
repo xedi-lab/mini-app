@@ -20,6 +20,8 @@ function App() {
   const [elapsed, setElapsed] = useState({ hours: 0, minutes: 0, seconds: 0, earned: 0 });
   const [confirmClose, setConfirmClose] = useState(false);
   const [adminStats, setAdminStats] = useState([]);
+  const [adminDashboard, setAdminDashboard] = useState(null);
+  const [adminTab, setAdminTab] = useState('dashboard');
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -116,9 +118,7 @@ function App() {
       setLoading(false);
     } catch {
       setEmployee(null);
-      if (id !== ADMIN_ID) {
-        await checkRegStatus(id);
-      }
+      if (id !== ADMIN_ID) await checkRegStatus(id);
       setLoading(false);
     }
   };
@@ -186,6 +186,14 @@ function App() {
       const res = await fetch(`${API}/admin/stats`);
       const data = await res.json();
       setAdminStats(data);
+    } catch {}
+  };
+
+  const fetchAdminDashboard = async () => {
+    try {
+      const res = await fetch(`${API}/admin/dashboard`);
+      const data = await res.json();
+      setAdminDashboard(data);
     } catch {}
   };
 
@@ -261,6 +269,7 @@ function App() {
       });
       showMessage('✅ Данные обновлены');
       setEditMode(false);
+      fetchAdminDashboard();
       fetchAdminStats();
       setSelectedEmployee({ ...selectedEmployee, hourly_rate: parseFloat(editRate), workplace: editWorkplace });
     } catch {
@@ -287,6 +296,17 @@ function App() {
   const deletePlannedShift = async (id) => {
     await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
     fetchAdminEmpData(selectedEmployee);
+  };
+
+  const formatTime = (dateStr) => {
+    const d = new Date(dateStr);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+
+  const getStatusLabel = (status) => {
+    if (status === 'on_shift') return { label: 'На смене', cls: 'status-on-shift' };
+    if (status === 'done') return { label: 'Отработал', cls: 'status-done' };
+    return { label: 'Не вышел', cls: 'status-not-working' };
   };
 
   if (loading) return (
@@ -351,9 +371,7 @@ function App() {
   );
 
   if (!employee && !isAdmin) return (
-    <div className="loader-screen">
-      <div className="loader"></div>
-    </div>
+    <div className="loader-screen"><div className="loader"></div></div>
   );
 
   return (
@@ -381,6 +399,7 @@ function App() {
 
       <div className="content">
 
+        {/* ГЛАВНАЯ */}
         {screen === 'home' && employee && (
           <div className="screen">
             <div className="greeting">
@@ -432,6 +451,7 @@ function App() {
           </div>
         )}
 
+        {/* ГРАФИК */}
         {screen === 'schedule' && (
           <div className="screen">
             <h2 className="screen-title">График</h2>
@@ -450,6 +470,7 @@ function App() {
           </div>
         )}
 
+        {/* ПРОФИЛЬ */}
         {screen === 'profile' && employee && !subScreen && (
           <div className="screen">
             <h2 className="screen-title">Профиль</h2>
@@ -470,6 +491,7 @@ function App() {
           </div>
         )}
 
+        {/* ИСТОРИЯ СМЕН */}
         {screen === 'profile' && subScreen === 'history' && (
           <div className="screen">
             <div className="screen-header">
@@ -497,6 +519,7 @@ function App() {
           </div>
         )}
 
+        {/* ПОДДЕРЖКА */}
         {screen === 'support' && (
           <div className="screen">
             <h2 className="screen-title">Поддержка</h2>
@@ -509,32 +532,133 @@ function App() {
           </div>
         )}
 
+        {/* АДМИН */}
         {screen === 'admin' && isAdmin && !selectedEmployee && (
           <div className="screen">
-            <h2 className="screen-title">Сотрудники</h2>
-            {adminStats.length === 0 ? (
-              <div className="empty">Сотрудников пока нет</div>
-            ) : adminStats.map(emp => (
-              <div key={emp.id} className="admin-employee-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-                <div className="admin-employee-header">
-                  <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
-                  <div className="admin-employee-info">
-                    <span className="admin-employee-name">{emp.first_name} {emp.last_name}</span>
-                    <span className="admin-employee-workplace">{emp.workplace}</span>
-                  </div>
-                  <div>{emp.on_shift ? '🟢' : '⚪'}</div>
-                </div>
-                <div className="admin-employee-stats">
-                  <div className="admin-stat"><span className="admin-stat-value">{emp.shifts_count || 0}</span><span className="admin-stat-label">Смен</span></div>
-                  <div className="admin-stat"><span className="admin-stat-value">{emp.total_hours ? parseFloat(emp.total_hours).toFixed(1) : '0'}ч</span><span className="admin-stat-label">Часов</span></div>
-                  <div className="admin-stat"><span className="admin-stat-value">{emp.total_earned ? parseFloat(emp.total_earned).toFixed(0) : '0'}₽</span><span className="admin-stat-label">Заработано</span></div>
-                  <div className="admin-stat"><span className="admin-stat-value">{emp.hourly_rate}₽</span><span className="admin-stat-label">Ставка/ч</span></div>
-                </div>
+            <h2 className="screen-title">Управление</h2>
+
+            <div className="admin-tabs">
+              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>
+                Сегодня
+              </button>
+              <button className={`admin-tab ${adminTab === 'employees' ? 'active' : ''}`} onClick={() => { setAdminTab('employees'); fetchAdminStats(); }}>
+                Сотрудники
+              </button>
+            </div>
+
+            {/* DASHBOARD TAB */}
+            {adminTab === 'dashboard' && (
+              <div className="dashboard-screen">
+                {!adminDashboard ? (
+                  <div className="empty">Загрузка...</div>
+                ) : (
+                  <>
+                    <div className="dashboard-section">
+                      <span className="dashboard-section-title">Обзор дня</span>
+                      <div className="dashboard-summary">
+                        <div className="dashboard-stat green">
+                          <span className="dashboard-stat-value">{adminDashboard.summary.on_shift_count}</span>
+                          <span className="dashboard-stat-label">На смене</span>
+                        </div>
+                        <div className="dashboard-stat">
+                          <span className="dashboard-stat-value">{adminDashboard.summary.done_today_count}</span>
+                          <span className="dashboard-stat-label">Отработали</span>
+                        </div>
+                        <div className="dashboard-stat red">
+                          <span className="dashboard-stat-value">{adminDashboard.summary.not_working_count}</span>
+                          <span className="dashboard-stat-label">Не вышли</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="dashboard-section">
+                      <span className="dashboard-section-title">Зарплатный фонд</span>
+                      <div className="dashboard-payroll">
+                        <div className="payroll-card">
+                          <span className="payroll-card-label">Сегодня</span>
+                          <span className="payroll-card-value">{adminDashboard.summary.today_payroll.toFixed(0)} ₽</span>
+                        </div>
+                        <div className="payroll-card">
+                          <span className="payroll-card-label">За месяц</span>
+                          <span className="payroll-card-value">{adminDashboard.summary.month_payroll.toFixed(0)} ₽</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="dashboard-section">
+                      <span className="dashboard-section-title">Сотрудники</span>
+                      <div className="dashboard-employees">
+                        {adminDashboard.employees.map(emp => {
+                          const { label, cls } = getStatusLabel(emp.status);
+                          return (
+                            <div key={emp.id} className="dashboard-employee-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
+                              <div className="dashboard-emp-avatar">
+                                {emp.first_name[0]}{emp.last_name[0]}
+                              </div>
+                              <div className="dashboard-emp-info">
+                                <span className="dashboard-emp-name">{emp.first_name} {emp.last_name}</span>
+                                <span className="dashboard-emp-meta">
+                                  {emp.on_shift && emp.open_shift ? `С ${formatTime(emp.open_shift.start_time)}` : emp.worked_today ? `${emp.today_hours.toFixed(1)}ч · ${emp.today_earned.toFixed(0)}₽` : emp.workplace}
+                                </span>
+                              </div>
+                              <span className={`dashboard-emp-status ${cls}`}>{label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="dashboard-section">
+                      <span className="dashboard-section-title">Активность</span>
+                      <div className="activity-list">
+                        {adminDashboard.activity.length === 0 ? (
+                          <div className="empty" style={{padding:'1rem 0'}}>Активности пока нет</div>
+                        ) : adminDashboard.activity.map(item => (
+                          <div key={item.id} className="activity-item">
+                            <div className={`activity-dot ${item.end_time ? 'close' : 'open'}`}></div>
+                            <span className="activity-text">
+                              <strong>{item.first_name} {item.last_name}</strong>
+                              {item.end_time ? ` закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч` : ' открыл смену'}
+                            </span>
+                            <span className="activity-time">{formatTime(item.end_time || item.start_time)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
-            ))}
+            )}
+
+            {/* EMPLOYEES TAB */}
+            {adminTab === 'employees' && (
+              <div>
+                {adminStats.length === 0 ? (
+                  <div className="empty">Сотрудников пока нет</div>
+                ) : adminStats.map(emp => (
+                  <div key={emp.id} className="admin-employee-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
+                    <div className="admin-employee-header">
+                      <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
+                      <div className="admin-employee-info">
+                        <span className="admin-employee-name">{emp.first_name} {emp.last_name}</span>
+                        <span className="admin-employee-workplace">{emp.workplace}</span>
+                      </div>
+                      <div>{emp.on_shift ? '🟢' : '⚪'}</div>
+                    </div>
+                    <div className="admin-employee-stats">
+                      <div className="admin-stat"><span className="admin-stat-value">{emp.shifts_count || 0}</span><span className="admin-stat-label">Смен</span></div>
+                      <div className="admin-stat"><span className="admin-stat-value">{emp.total_hours ? parseFloat(emp.total_hours).toFixed(1) : '0'}ч</span><span className="admin-stat-label">Часов</span></div>
+                      <div className="admin-stat"><span className="admin-stat-value">{emp.total_earned ? parseFloat(emp.total_earned).toFixed(0) : '0'}₽</span><span className="admin-stat-label">Заработано</span></div>
+                      <div className="admin-stat"><span className="admin-stat-value">{emp.hourly_rate}₽</span><span className="admin-stat-label">Ставка/ч</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
+        {/* ПРОФИЛЬ СОТРУДНИКА (АДМИН) */}
         {screen === 'admin' && isAdmin && selectedEmployee && !subScreen && (
           <div className="screen">
             <div className="screen-header">
@@ -571,6 +695,7 @@ function App() {
           </div>
         )}
 
+        {/* ИСТОРИЯ СМЕН (АДМИН) */}
         {screen === 'admin' && subScreen === 'emp-history' && (
           <div className="screen">
             <div className="screen-header">
@@ -596,6 +721,7 @@ function App() {
           </div>
         )}
 
+        {/* ПЛАНОВЫЕ СМЕНЫ (АДМИН) */}
         {screen === 'admin' && subScreen === 'emp-planned' && (
           <div className="screen">
             <div className="screen-header">
@@ -661,7 +787,7 @@ function App() {
           <span className="nav-label">Поддержка</span>
         </button>
         {isAdmin && (
-          <button className={`nav-item ${screen === 'admin' ? 'active' : ''}`} onClick={() => { navigateTo('admin'); fetchAdminStats(); }}>
+          <button className={`nav-item ${screen === 'admin' ? 'active' : ''}`} onClick={() => { navigateTo('admin'); fetchAdminDashboard(); }}>
             <span className="nav-icon">⚙️</span>
             <span className="nav-label">Админ</span>
           </button>
