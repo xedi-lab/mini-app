@@ -92,9 +92,9 @@ function App() {
     if (!stats?.on_shift || !stats?.open_shift) return;
     const tick = () => {
       const now = new Date();
-      now.setHours(now.getUTCHours() + 7);
+      const nowNSK = now.getTime() + 7 * 60 * 60 * 1000;
       const start = new Date(stats.open_shift.start_time);
-      const diffMs = now - start;
+      const diffMs = nowNSK - start.getTime();
       const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
       const hours = Math.floor(totalSeconds / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
