@@ -1726,6 +1726,14 @@ body {
   flex-direction: column;
   gap: 8px;
   flex: 1;
+  min-width: 0;
+}
+
+.time-pickers-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
 }
 
 .time-picker-label {
