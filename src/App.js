@@ -1,3 +1,4 @@
+import config from './config';
 import React, { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -741,8 +742,8 @@ function App() {
             <div className="support-card">
               <div className="support-icon">💬</div>
               <p>По всем вопросам обращайтесь:</p>
-              <a href="https://t.me/твой_юзернейм" className="support-link">@администратор</a>
-              <a href="https://t.me/твой_юзернейм" className="support-link">@разработчик</a>
+              <a href={`https://t.me/${config.supportUsername}`} className="support-link">@администратор</a>
+              <a href={`https://t.me/${config.developerUsername}`} className="support-link">@разработчик</a>
             </div>
           </div>
         )}
