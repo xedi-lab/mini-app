@@ -927,6 +927,7 @@ const formatTime = (dateStr) => {
           <span className="nav-label">График</span>
         </button>
         <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`} onClick={() => { navigateTo('profile'); fetchAnalytics(userId); }}>
+          <span className="nav-icon">👤</span>
           <span className="nav-label">Профиль</span>
         </button>
         <button className={`nav-item ${screen === 'support' ? 'active' : ''}`} onClick={() => navigateTo('support')}>
