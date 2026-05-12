@@ -1,4 +1,3 @@
-import Picker from 'react-mobile-picker';
 import React, { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -175,46 +174,15 @@ function DatePicker({ value, onChange }) {
 }
 
 function TimePicker({ value, onChange, label }) {
-  const [selectedHour, selectedMinute] = value ? value.split(':') : ['09', '00'];
-
-  const hours = Object.fromEntries(
-    Array.from({ length: 24 }, (_, i) => [String(i).padStart(2, '0'), String(i).padStart(2, '0')])
-  );
-  const minutes = Object.fromEntries(
-    Array.from({ length: 60 }, (_, i) => [String(i).padStart(2, '0'), String(i).padStart(2, '0')])
-  );
-
-  const pickerValue = { hour: selectedHour, minute: selectedMinute };
-
-  const handleChange = (newValue) => {
-    onChange(`${newValue.hour}:${newValue.minute}`);
-  };
-
   return (
     <div className="time-picker-wrap">
       <span className="time-picker-label">{label}</span>
-      <div className="time-picker-drum">
-        <Picker value={pickerValue} onChange={handleChange} wheelMode="natural" height={90} itemHeight={30}>
-          <Picker.Column name="hour">
-            {Object.keys(hours).map(h => (
-              <Picker.Item key={h} value={h}>
-                {({ selected }) => (
-                  <div className={`drum-item ${selected ? 'drum-item--selected' : ''}`}>{h}</div>
-                )}
-              </Picker.Item>
-            ))}
-          </Picker.Column>
-          <Picker.Column name="minute">
-            {Object.keys(minutes).map(m => (
-              <Picker.Item key={m} value={m}>
-                {({ selected }) => (
-                  <div className={`drum-item ${selected ? 'drum-item--selected' : ''}`}>{m}</div>
-                )}
-              </Picker.Item>
-            ))}
-          </Picker.Column>
-        </Picker>
-      </div>
+      <input
+        className="time-picker-native"
+        type="time"
+        value={value || '09:00'}
+        onChange={e => onChange(e.target.value)}
+      />
     </div>
   );
 }

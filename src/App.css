@@ -1736,29 +1736,26 @@ body {
   letter-spacing: 0.08em;
 }
 
-.time-picker-drum {
+.time-picker-native {
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  overflow: hidden;
-}
-
-.drum-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-  transition: all 0.15s;
-}
-
-.drum-item--selected {
-  font-size: 1.2rem;
+  padding: 14px 16px;
+  font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+  outline: none;
+  -webkit-appearance: none;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.time-picker-native:focus {
+  border-color: var(--accent);
 }
 
 .skeleton-line--short { width: 40%; }
