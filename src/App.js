@@ -210,7 +210,7 @@ function App() {
   const [editMode, setEditMode] = useState(false);
   const [editRate, setEditRate] = useState('');
   const [editWorkplace, setEditWorkplace] = useState('');
-  const [newShift, setNewShift] = useState({ date: '', start: '', end: '', note: '' });
+  const [newShift, setNewShift] = useState({ date: '', start: '09:00', end: '21:00', note: '' });
   const [adminEmpShifts, setAdminEmpShifts] = useState([]);
   const [adminEmpPlanned, setAdminEmpPlanned] = useState([]);
   const [debugInfo, setDebugInfo] = useState('');
@@ -440,7 +440,7 @@ function App() {
   };
 
   const addPlannedShift = async () => {
-    if (!newShift.date || !newShift.start || !newShift.end) return showMessage('Заполни дату и время', 'error');
+    if (!newShift.date) return showMessage('Выбери дату', 'error');
     try {
       await fetch(`${API}/admin/planned-shift`, {
         method: 'POST',
@@ -1006,7 +1006,7 @@ function App() {
           <span className="empty-subtitle">Добавьте смену выше</span>
         </div>
       ) : adminEmpPlanned.map(shift => (
-        <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
+         <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
           <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
           <div className="shift-info">
             <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
