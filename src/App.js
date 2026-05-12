@@ -5,6 +5,83 @@ import './App.css';
 const API = 'https://hr-bot-production-eedd.up.railway.app';
 const ADMIN_ID = 7639287231;
 
+function ScheduleCalendar({ shifts }) {
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10));
+
+  // Генерируем 14 дней начиная с сегодня
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d;
+  });
+
+  const dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+
+  const shiftsForDate = (dateStr) =>
+    shifts.filter(s => s.planned_date === dateStr);
+
+  const hasShift = (dateStr) => shiftsForDate(dateStr).length > 0;
+
+  const selectedShifts = shiftsForDate(selectedDate);
+
+  const formatSelectedDate = () => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  };
+
+  return (
+    <div className="schedule-calendar">
+      <div className="calendar-strip-wrap">
+        <div className="calendar-strip">
+          {days.map(d => {
+            const dateStr = d.toISOString().slice(0, 10);
+            const isToday = dateStr === today.toISOString().slice(0, 10);
+            const isSelected = dateStr === selectedDate;
+            const hasS = hasShift(dateStr);
+            return (
+              <button
+                key={dateStr}
+                className={`calendar-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+                onClick={() => setSelectedDate(dateStr)}
+              >
+                <span className="calendar-day-name">{dayNames[d.getDay()]}</span>
+                <span className="calendar-day-num">{d.getDate()}</span>
+                {hasS && <span className="calendar-dot"></span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="calendar-content">
+        <span className="calendar-date-label">{formatSelectedDate()}</span>
+        {selectedShifts.length === 0 ? (
+          <div className="calendar-empty">Смен нет</div>
+        ) : selectedShifts.map(shift => (
+          <div key={shift.id} className="calendar-shift-card">
+            <div className="calendar-shift-time">
+              {shift.shift_start} — {shift.shift_end}
+            </div>
+            {shift.note && (
+              <div className="calendar-shift-note">{shift.note}</div>
+            )}
+            <div className="calendar-shift-duration">
+              {(() => {
+                const [sh, sm] = shift.shift_start.split(':').map(Number);
+                const [eh, em] = shift.shift_end.split(':').map(Number);
+                const duration = (eh * 60 + em) - (sh * 60 + sm);
+                return `${Math.floor(duration / 60)}ч ${duration % 60 > 0 ? duration % 60 + 'м' : ''}`.trim();
+              })()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
@@ -443,22 +520,11 @@ const formatTime = (dateStr) => {
           </div>
         )}
 
-        {/* ГРАФИК */}
+       {/* ГРАФИК */}
         {screen === 'schedule' && (
           <div className="screen">
             <h2 className="screen-title">График</h2>
-            {plannedShifts.length === 0 ? (
-              <div className="empty">Плановых смен пока нет</div>
-            ) : plannedShifts.map(shift => (
-              <div key={shift.id} className="shift-item">
-                <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-                <div className="shift-info">
-                  <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-                  {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
-                </div>
-                <div className="shift-earned planned-badge">план</div>
-              </div>
-            ))}
+            <ScheduleCalendar shifts={plannedShifts} />
           </div>
         )}
 
