@@ -454,9 +454,16 @@ function App() {
   };
 
   const deletePlannedShift = async (id) => {
-    await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
-    fetchAdminEmpData(selectedEmployee);
-  };
+  const el = document.getElementById(`shift-${id}`);
+  if (el) {
+    el.style.transition = 'all 0.3s ease';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-20px)';
+    await new Promise(r => setTimeout(r, 300));
+  }
+  await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
+  fetchAdminEmpData(selectedEmployee);
+};
 
   const formatTime = (dateStr) => {
     const d = new Date(dateStr);
@@ -999,7 +1006,7 @@ function App() {
           <span className="empty-subtitle">Добавьте смену выше</span>
         </div>
       ) : adminEmpPlanned.map(shift => (
-        <div key={shift.id} className="shift-item">
+        <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
           <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
           <div className="shift-info">
             <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
