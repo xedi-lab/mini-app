@@ -440,26 +440,38 @@ function App() {
   };
 
   const addPlannedShift = async () => {
-    if (!newShift.date) return showMessage('Выбери дату', 'error');
-    try {
-      await fetch(`${API}/admin/planned-shift`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: selectedEmployee.telegram_id, planned_date: newShift.date, shift_start: newShift.start, shift_end: newShift.end, note: newShift.note })
-      });
-      showMessage('✅ Смена добавлена');
-      setNewShift({ date: '', start: '', end: '', note: '' });
-      fetchAdminEmpData(selectedEmployee);
-    } catch { showMessage('Ошибка', 'error'); }
-  };
+  if (!newShift.date) return showMessage('Выбери дату', 'error');
+  const start = newShift.start || '09:00';
+  const end = newShift.end || '21:00';
+  try {
+    await fetch(`${API}/admin/planned-shift`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_id: selectedEmployee.telegram_id,
+        planned_date: newShift.date,
+        shift_start: start,
+        shift_end: end,
+        note: newShift.note
+      })
+    });
+    showMessage('✅ Смена добавлена');
+    setNewShift({ date: '', start: '09:00', end: '21:00', note: '' });
+    fetchAdminEmpData(selectedEmployee);
+  } catch { showMessage('Ошибка', 'error'); }
+};
 
   const deletePlannedShift = async (id) => {
   const el = document.getElementById(`shift-${id}`);
   if (el) {
-    el.style.transition = 'all 0.3s ease';
+    el.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease';
     el.style.opacity = '0';
-    el.style.transform = 'translateX(-20px)';
-    await new Promise(r => setTimeout(r, 300));
+    el.style.transform = 'translateX(-16px)';
+    el.style.maxHeight = '0';
+    el.style.padding = '0';
+    el.style.margin = '0';
+    el.style.overflow = 'hidden';
+    await new Promise(r => setTimeout(r, 320));
   }
   await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
   fetchAdminEmpData(selectedEmployee);
