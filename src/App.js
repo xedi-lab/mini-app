@@ -173,40 +173,90 @@ function DatePicker({ value, onChange }) {
   );
 }
 
-// ПИКЕР ВРЕМЕНИ
 function TimePicker({ value, onChange, label }) {
-  const minutes = ['00', '15', '30', '45'];
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
   const [selectedHour, selectedMinute] = value ? value.split(':') : ['09', '00'];
+
+  const hourRef = React.useRef(null);
+  const minRef = React.useRef(null);
+
+  const ITEM_HEIGHT = 40;
+
+  React.useEffect(() => {
+    if (hourRef.current) {
+      hourRef.current.scrollTop = parseInt(selectedHour) * ITEM_HEIGHT;
+    }
+    if (minRef.current) {
+      minRef.current.scrollTop = parseInt(selectedMinute) * ITEM_HEIGHT;
+    }
+  }, []);
+
+  const handleHourScroll = (e) => {
+    const idx = Math.round(e.target.scrollTop / ITEM_HEIGHT);
+    const h = String(Math.min(23, Math.max(0, idx))).padStart(2, '0');
+    if (h !== selectedHour) onChange(`${h}:${selectedMinute}`);
+  };
+
+  const handleMinScroll = (e) => {
+    const idx = Math.round(e.target.scrollTop / ITEM_HEIGHT);
+    const m = String(Math.min(59, Math.max(0, idx))).padStart(2, '0');
+    if (m !== selectedMinute) onChange(`${selectedHour}:${m}`);
+  };
 
   return (
     <div className="time-picker-wrap">
       <span className="time-picker-label">{label}</span>
-      <div className="time-picker-display">
-        <div className="time-picker-col">
-          <button className="time-picker-arrow" onClick={() => {
-            const h = (parseInt(selectedHour) - 1 + 24) % 24;
-            onChange(`${String(h).padStart(2, '0')}:${selectedMinute}`);
-          }}>▲</button>
-          <span className="time-picker-value">{selectedHour}</span>
-          <button className="time-picker-arrow" onClick={() => {
-            const h = (parseInt(selectedHour) + 1) % 24;
-            onChange(`${String(h).padStart(2, '0')}:${selectedMinute}`);
-          }}>▼</button>
+      <div className="time-picker-drum">
+        <div className="time-picker-highlight" />
+
+        {/* ЧАСЫ */}
+        <div
+          className="time-picker-scroll-col"
+          ref={hourRef}
+          onScrollEnd={handleHourScroll}
+          onScroll={handleHourScroll}
+        >
+          <div className="time-picker-padding" />
+          {hours.map(h => (
+            <div
+              key={h}
+              className={`time-picker-item ${h === selectedHour ? 'active' : ''}`}
+              onClick={() => {
+                onChange(`${h}:${selectedMinute}`);
+                if (hourRef.current) hourRef.current.scrollTop = parseInt(h) * ITEM_HEIGHT;
+              }}
+            >
+              {h}
+            </div>
+          ))}
+          <div className="time-picker-padding" />
         </div>
+
         <span className="time-picker-sep">:</span>
-        <div className="time-picker-col">
-          <button className="time-picker-arrow" onClick={() => {
-            const idx = minutes.indexOf(selectedMinute);
-            const m = minutes[(idx - 1 + minutes.length) % minutes.length];
-            onChange(`${selectedHour}:${m}`);
-          }}>▲</button>
-          <span className="time-picker-value">{selectedMinute}</span>
-          <button className="time-picker-arrow" onClick={() => {
-            const idx = minutes.indexOf(selectedMinute);
-            const m = minutes[(idx + 1) % minutes.length];
-            onChange(`${selectedHour}:${m}`);
-          }}>▼</button>
+
+        {/* МИНУТЫ */}
+        <div
+          className="time-picker-scroll-col"
+          ref={minRef}
+          onScrollEnd={handleMinScroll}
+          onScroll={handleMinScroll}
+        >
+          <div className="time-picker-padding" />
+          {minutes.map(m => (
+            <div
+              key={m}
+              className={`time-picker-item ${m === selectedMinute ? 'active' : ''}`}
+              onClick={() => {
+                onChange(`${selectedHour}:${m}`);
+                if (minRef.current) minRef.current.scrollTop = parseInt(m) * ITEM_HEIGHT;
+              }}
+            >
+              {m}
+            </div>
+          ))}
+          <div className="time-picker-padding" />
         </div>
       </div>
     </div>
