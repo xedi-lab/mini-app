@@ -1488,6 +1488,88 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* PREMIUM POLISH */
+
+/* Тонкий градиент на фоне */
+body {
+  background: linear-gradient(180deg, #F2F2F7 0%, #EBEBF0 100%);
+  min-height: 100vh;
+}
+
+/* Hero card — более глубокая тень когда активна */
+.hero-card--active {
+  box-shadow: 0 8px 32px rgba(22,33,62,0.25), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Action кнопка — тонкий shine эффект */
+.action-btn--open {
+  background: linear-gradient(135deg, #2C2C2E 0%, #1C1C1E 100%);
+  box-shadow: 0 4px 20px rgba(28,28,30,0.25);
+}
+
+/* Карточки — чуть более выраженная тень */
+.profile-card,
+.analytics-earned-card {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Next shift завтра — акцентный градиент */
+.next-shift-card--tomorrow {
+  background: linear-gradient(135deg, rgba(52,199,89,0.08) 0%, rgba(52,199,89,0.03) 100%);
+  box-shadow: 0 2px 12px rgba(52,199,89,0.1);
+}
+
+/* Nav активный элемент — точка индикатор */
+.nav-item.active .nav-icon {
+  position: relative;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Payroll значения — зелёный градиент */
+.payroll-card-value {
+  background: linear-gradient(135deg, #1E7A3A 0%, #34C759 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Bottom nav — более выраженное стекло */
+.bottom-nav {
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 -1px 0 rgba(0,0,0,0.06), 0 -4px 20px rgba(0,0,0,0.04);
+}
+
+/* Confirm modal handle */
+.confirm-modal::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: 2px;
+  margin: 0 auto 8px;
+}
+
+/* Shift item — левый акцентный бордер */
+.shift-item {
+  border-left: 3px solid var(--border);
+  padding-left: 12px;
+}
+
+/* Тонкое скругление на screen-title */
+.screen-title {
+  letter-spacing: -0.03em;
+}
+
 .skeleton-line--short { width: 40%; }
 .skeleton-line--medium { width: 65%; }
 .skeleton-line--full { width: 100%; }
