@@ -500,7 +500,7 @@ const formatTime = (dateStr) => {
                   <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
                   <div className="shift-info">
                     <span className="shift-time">
-                      {String(start.getHours()).padStart(2, '0')}:{String(start.getMinutes()).padStart(2, '0')} — {String(end.getHours()).padStart(2, '0')}:{String(end.getMinutes()).padStart(2, '0')}
+                      {String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}
                     </span>
                     <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
                   </div>
@@ -707,7 +707,7 @@ const formatTime = (dateStr) => {
                 <div key={shift.id} className="shift-item">
                   <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
                   <div className="shift-info">
-                    <span className="shift-time">{String(start.getHours()).padStart(2, '0')}:{String(start.getMinutes()).padStart(2, '0')} — {String(end.getHours()).padStart(2, '0')}:{String(end.getMinutes()).padStart(2, '0')}</span>
+                    {String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}
                     <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
                   </div>
                   <div className="shift-earned">{shift.earned}₽</div>
