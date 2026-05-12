@@ -592,8 +592,12 @@ function App() {
               <button className={`analytics-tab ${analyticsPeriod === 'three_months' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('three_months'); if (!analytics) fetchAnalytics(userId); }}>3 месяца</button>
             </div>
             {!analytics ? (
-              <div className="empty">Загрузка...</div>
-            ) : (
+  <div className="skeleton-card">
+    <div className="skeleton skeleton-line skeleton-line--short" />
+    <div className="skeleton skeleton-line skeleton-line--full" />
+    <div className="skeleton skeleton-line skeleton-line--medium" />
+  </div>
+) : (
               <>
                 <div className="analytics-main">
                   <div className="analytics-earned-card">
@@ -636,8 +640,12 @@ function App() {
               <h2 className="screen-title">Учёт смен</h2>
             </div>
             {pastShifts.length === 0 ? (
-              <div className="empty">Смен пока нет</div>
-            ) : pastShifts.map(shift => {
+  <div className="empty">
+    <div className="empty-icon">📋</div>
+    <span className="empty-title">Смен пока нет</span>
+    <span className="empty-subtitle">История появится после первой смены</span>
+  </div>
+) : pastShifts.map(shift => {
               const start = new Date(shift.start_time);
               const end = new Date(shift.end_time);
               return (
@@ -681,10 +689,16 @@ function App() {
 
             {adminTab === 'dashboard' && (
               <div className="dashboard-screen">
-                {!adminDashboard ? <div className="empty">Загрузка...</div> : (
-                  <>
-                    <div className="dashboard-section">
-                      <span className="dashboard-section-title">Обзор дня</span>
+                {!adminDashboard ? (
+  <div className="skeleton-card">
+    <div className="skeleton skeleton-line skeleton-line--short" />
+    <div className="skeleton skeleton-line skeleton-line--full" />
+    <div className="skeleton skeleton-line skeleton-line--medium" />
+  </div>
+) : (
+  <>
+    <div className="dashboard-section">
+      <span className="dashboard-section-title">Обзор дня</span>
                       <div className="dashboard-summary">
                         <div className="dashboard-stat green">
                           <span className="dashboard-stat-value">{adminDashboard.summary.on_shift_count}</span>
@@ -720,8 +734,19 @@ function App() {
 
             {adminTab === 'activity' && (
               <div className="dashboard-screen">
-                {!adminDashboard ? <div className="empty">Загрузка...</div> :
-                  adminDashboard.activity.length === 0 ? <div className="empty">Активности пока нет</div> : (
+                {!adminDashboard ? (
+  <div className="skeleton-card">
+    <div className="skeleton skeleton-line skeleton-line--short" />
+    <div className="skeleton skeleton-line skeleton-line--full" />
+    <div className="skeleton skeleton-line skeleton-line--medium" />
+  </div>
+) : adminDashboard.activity.length === 0 ? (
+  <div className="empty">
+    <div className="empty-icon">⚡</div>
+    <span className="empty-title">Активности пока нет</span>
+    <span className="empty-subtitle">Здесь будут появляться события</span>
+  </div>
+) : (
                     <div className="bank-activity-list">
                       {adminDashboard.activity.map((item, index) => {
                         const isOpen = !item.end_time;
@@ -758,7 +783,13 @@ function App() {
 
             {adminTab === 'staff' && (
               <div className="staff-list">
-                {adminStats.length === 0 ? <div className="empty">Сотрудников пока нет</div> :
+                {adminStats.length === 0 ? (
+  <div className="empty">
+    <div className="empty-icon">👥</div>
+    <span className="empty-title">Сотрудников пока нет</span>
+    <span className="empty-subtitle">Добавьте первого сотрудника через бота</span>
+  </div>
+) :
                   adminStats.map(emp => (
                     <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
                       <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
@@ -821,7 +852,13 @@ function App() {
               <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
               <h2 className="screen-title">История смен</h2>
             </div>
-            {adminEmpShifts.length === 0 ? <div className="empty">Смен пока нет</div> :
+            {adminEmpShifts.length === 0 ? (
+  <div className="empty">
+    <div className="empty-icon">📋</div>
+    <span className="empty-title">Смен пока нет</span>
+    <span className="empty-subtitle">История появится после первой смены</span>
+  </div>
+) :
               adminEmpShifts.map(shift => {
                 const start = new Date(shift.start_time);
                 const end = new Date(shift.end_time);
@@ -870,7 +907,13 @@ function App() {
               <button className="btn btn-open" style={{width:'100%'}} onClick={addPlannedShift}>+ Добавить смену</button>
             </div>
             <div className="shifts-list" style={{marginTop:'1rem'}}>
-              {adminEmpPlanned.length === 0 ? <div className="empty">Плановых смен нет</div> :
+              {adminEmpPlanned.length === 0 ? (
+  <div className="empty">
+    <div className="empty-icon">📅</div>
+    <span className="empty-title">Плановых смен нет</span>
+    <span className="empty-subtitle">Добавьте смену выше</span>
+  </div>
+) :
                 adminEmpPlanned.map(shift => (
                   <div key={shift.id} className="shift-item">
                     <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
