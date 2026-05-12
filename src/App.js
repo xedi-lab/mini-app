@@ -117,6 +117,83 @@ function ScheduleCalendar({ shifts }) {
   );
 }
 
+// ПИКЕР ДАТЫ
+function DatePicker({ value, onChange }) {
+  const today = new Date();
+  const days = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    return d;
+  });
+
+  const dayNames = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+  return (
+    <div className="date-picker-wrap">
+      <div className="date-picker-scroll">
+        {days.map(d => {
+          const dateStr = d.toISOString().slice(0, 10);
+          const isSelected = dateStr === value;
+          const isToday = d.toDateString() === today.toDateString();
+          return (
+            <button
+              key={dateStr}
+              className={`date-picker-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`}
+              onClick={() => onChange(dateStr)}
+            >
+              <span className="date-picker-dayname">{dayNames[d.getDay()]}</span>
+              <span className="date-picker-daynum">{d.getDate()}</span>
+              <span className="date-picker-month">{months[d.getMonth()]}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ПИКЕР ВРЕМЕНИ
+function TimePicker({ value, onChange, label }) {
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const minutes = ['00', '15', '30', '45'];
+
+  const [selectedHour, selectedMinute] = value ? value.split(':') : ['09', '00'];
+
+  return (
+    <div className="time-picker-wrap">
+      <span className="time-picker-label">{label}</span>
+      <div className="time-picker-display">
+        <div className="time-picker-col">
+          <button className="time-picker-arrow" onClick={() => {
+            const h = (parseInt(selectedHour) - 1 + 24) % 24;
+            onChange(`${String(h).padStart(2, '0')}:${selectedMinute}`);
+          }}>▲</button>
+          <span className="time-picker-value">{selectedHour}</span>
+          <button className="time-picker-arrow" onClick={() => {
+            const h = (parseInt(selectedHour) + 1) % 24;
+            onChange(`${String(h).padStart(2, '0')}:${selectedMinute}`);
+          }}>▼</button>
+        </div>
+        <span className="time-picker-sep">:</span>
+        <div className="time-picker-col">
+          <button className="time-picker-arrow" onClick={() => {
+            const idx = minutes.indexOf(selectedMinute);
+            const m = minutes[(idx - 1 + minutes.length) % minutes.length];
+            onChange(`${selectedHour}:${m}`);
+          }}>▲</button>
+          <span className="time-picker-value">{selectedMinute}</span>
+          <button className="time-picker-arrow" onClick={() => {
+            const idx = minutes.indexOf(selectedMinute);
+            const m = minutes[(idx + 1) % minutes.length];
+            onChange(`${selectedHour}:${m}`);
+          }}>▼</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
@@ -878,42 +955,68 @@ function App() {
         )}
 
         {/* ПЛАНОВЫЕ СМЕНЫ (АДМИН) */}
-        {screen === 'admin' && subScreen === 'emp-planned' && (
-          <div className="screen">
-            <div className="screen-header">
-              <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
-              <h2 className="screen-title">Плановые смены</h2>
-            </div>
-            <div className="edit-form">
-              <div className="form-group">
-                <label>Дата</label>
-                <input className="form-input" type="date" value={newShift.date} onChange={e => setNewShift({...newShift, date: e.target.value})} />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Начало</label>
-                  <input className="form-input" type="time" value={newShift.start} onChange={e => setNewShift({...newShift, start: e.target.value})} />
-                </div>
-                <div className="form-group">
-                  <label>Конец</label>
-                  <input className="form-input" type="time" value={newShift.end} onChange={e => setNewShift({...newShift, end: e.target.value})} />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Заметка (необязательно)</label>
-                <input className="form-input" value={newShift.note} onChange={e => setNewShift({...newShift, note: e.target.value})} placeholder="Например: ночная смена" />
-              </div>
-              <button className="done-btn" onClick={() => document.activeElement.blur()}>Готово ✓</button>
-              <button className="btn btn-open" style={{width:'100%'}} onClick={addPlannedShift}>+ Добавить смену</button>
-            </div>
-            <div className="shifts-list" style={{marginTop:'1rem'}}>
-              {adminEmpPlanned.length === 0 ? (
-  <div className="empty">
-    <div className="empty-icon">📅</div>
-    <span className="empty-title">Плановых смен нет</span>
-    <span className="empty-subtitle">Добавьте смену выше</span>
+{screen === 'admin' && subScreen === 'emp-planned' && (
+  <div className="screen">
+    <div className="screen-header">
+      <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
+      <h2 className="screen-title">Плановые смены</h2>
+    </div>
+
+    <div className="shift-form-card">
+      <span className="form-section-label">Дата</span>
+      <DatePicker
+        value={newShift.date}
+        onChange={date => setNewShift({...newShift, date})}
+      />
+
+      <div className="time-pickers-row">
+        <TimePicker
+          label="Начало"
+          value={newShift.start || '09:00'}
+          onChange={start => setNewShift({...newShift, start})}
+        />
+        <TimePicker
+          label="Конец"
+          value={newShift.end || '21:00'}
+          onChange={end => setNewShift({...newShift, end})}
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Заметка (необязательно)</label>
+        <input
+          className="form-input"
+          value={newShift.note}
+          onChange={e => setNewShift({...newShift, note: e.target.value})}
+          placeholder="Например: Озон, Рест..."
+        />
+      </div>
+
+      <button className="action-btn action-btn--open" onClick={addPlannedShift}>
+        Добавить смену
+      </button>
+    </div>
+
+    <div className="shifts-list">
+      {adminEmpPlanned.length === 0 ? (
+        <div className="empty">
+          <div className="empty-icon">📅</div>
+          <span className="empty-title">Плановых смен нет</span>
+          <span className="empty-subtitle">Добавьте смену выше</span>
+        </div>
+      ) : adminEmpPlanned.map(shift => (
+        <div key={shift.id} className="shift-item">
+          <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+          <div className="shift-info">
+            <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+            {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+          </div>
+          <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+        </div>
+      ))}
+    </div>
   </div>
-) :
+)}
                 adminEmpPlanned.map(shift => (
                   <div key={shift.id} className="shift-item">
                     <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
