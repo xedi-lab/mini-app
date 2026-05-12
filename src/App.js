@@ -1017,20 +1017,7 @@ function App() {
     </div>
   </div>
 )}
-                adminEmpPlanned.map(shift => (
-                  <div key={shift.id} className="shift-item">
-                    <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-                    <div className="shift-info">
-                      <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-                      {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
-                    </div>
-                    <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-        )}
+                
 
       </div>
 
