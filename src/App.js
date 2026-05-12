@@ -459,6 +459,7 @@ function App() {
     showMessage('✅ Смена добавлена');
     setNewShift({ date: '', start: '09:00', end: '21:00', note: '' });
     fetchAdminEmpData(selectedEmployee);
+    fetchPlanned(selectedEmployee.telegram_id);
   } catch { showMessage('Ошибка', 'error'); }
 };
 
@@ -476,6 +477,7 @@ function App() {
   }
   await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
   fetchAdminEmpData(selectedEmployee);
+  fetchPlanned(selectedEmployee.telegram_id);
 };
 
   const formatTime = (dateStr) => {
