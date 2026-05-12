@@ -1192,7 +1192,7 @@ body {
   border-radius: var(--r-md);
   color: var(--text-secondary);
   font-size: 0.8rem; font-weight: 600;
-  cursor: pointer; transition: all 0.15s; text-align: center;
+  cursor: pointer; transition: all 0.2s var(--ease); text-align: center;
 }
 
 .analytics-tab.active {
@@ -1201,7 +1201,9 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.analytics-main { display: flex; flex-direction: column; gap: 10px; }
+.analytics-main {
+  display: flex; flex-direction: column; gap: 10px;
+}
 
 .analytics-earned-card {
   background: var(--surface);
@@ -1210,6 +1212,7 @@ body {
   padding: 18px 20px;
   display: flex; flex-direction: column; gap: 4px;
   box-shadow: var(--shadow-sm);
+  animation: cardIn 0.25s var(--ease) both;
 }
 
 .analytics-earned-label {
@@ -1223,7 +1226,13 @@ body {
 
 .analytics-earned-sub { font-size: 0.78rem; color: var(--text-secondary); }
 
-.analytics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.analytics-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  animation: cardIn 0.3s var(--ease) both;
+}
+
+.analytics-row .analytics-card:nth-child(1) { animation-delay: 0.05s; }
+.analytics-row .analytics-card:nth-child(2) { animation-delay: 0.1s; }
 
 .analytics-card {
   background: var(--surface);
@@ -1232,6 +1241,7 @@ body {
   padding: 14px;
   display: flex; flex-direction: column; gap: 3px;
   box-shadow: var(--shadow-sm);
+  animation: cardIn 0.3s var(--ease) both;
 }
 
 .analytics-card-label {

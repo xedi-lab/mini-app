@@ -678,7 +678,7 @@ function App() {
                   </div>
                 </div>
                 {analyticsPeriod === 'month' && (
-                  <div className="analytics-row">
+                <div className="analytics-row" key="month-analytics">
                     <div className="analytics-card">
                       <span className="analytics-card-label">Прогноз</span>
                       <span className="analytics-card-value">{analytics.forecast} ₽</span>
