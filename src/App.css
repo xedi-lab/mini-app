@@ -1393,6 +1393,101 @@ body {
   margin-bottom: -6px;
 }
 
+/* MOTION SYSTEM */
+
+/* Плавное появление карточек */
+.stat-card,
+.shift-item,
+.staff-card,
+.payroll-card,
+.analytics-card,
+.analytics-earned-card,
+.next-shift-card,
+.profile-card,
+.profile-info {
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.stat-card:active,
+.shift-item:active {
+  transform: scale(0.98);
+}
+
+/* Пружинное появление bottom sheet */
+.bottom-sheet {
+  animation: sheetIn 0.35s var(--spring);
+}
+
+@keyframes sheetIn {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Плавное появление toast */
+.toast {
+  animation: toastIn 0.4s var(--spring);
+}
+
+@keyframes toastIn {
+  from { transform: translateY(-20px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Анимация статус дота */
+.hero-status-dot.active {
+  animation: pulse-dot 2s infinite, dotAppear 0.3s var(--spring);
+}
+
+@keyframes dotAppear {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* Анимация action кнопки */
+.action-btn {
+  transition: transform 0.2s var(--spring), box-shadow 0.2s var(--ease), background 0.2s;
+}
+
+.action-btn--open:not(:disabled):active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(28,28,30,0.15);
+}
+
+.action-btn--close:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Плавная смена табов */
+.admin-tab, .analytics-tab {
+  transition: all 0.2s var(--ease);
+}
+
+/* Анимация hero карточки при смене статуса */
+.hero-card {
+  transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease), border-color 0.4s var(--ease);
+}
+
+/* Skeleton pulse более плавный */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Анимация nav items */
+.nav-item {
+  transition: transform 0.15s var(--spring);
+}
+
+.nav-item:active {
+  transform: scale(0.88);
+}
+
+/* Плавное появление экранов */
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .skeleton-line--short { width: 40%; }
 .skeleton-line--medium { width: 65%; }
 .skeleton-line--full { width: 100%; }
