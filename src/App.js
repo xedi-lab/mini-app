@@ -987,7 +987,7 @@ function App() {
           className="form-input"
           value={newShift.note}
           onChange={e => setNewShift({...newShift, note: e.target.value})}
-          placeholder="Например: Озон, Рест..."
+          placeholder="Необязательно"
         />
       </div>
 
