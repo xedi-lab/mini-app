@@ -54,7 +54,6 @@ function ScheduleCalendar({ shifts }) {
       <div className="calendar-header-row">
         <span className="calendar-month-label">{months[today.getMonth()]} {today.getFullYear()}</span>
       </div>
-
       <div className="calendar-grid-wrap">
         <div className="calendar-weekdays">
           {dayNames.map(d => (
@@ -85,11 +84,9 @@ function ScheduleCalendar({ shifts }) {
           ))}
         </div>
       </div>
-
       <button className="calendar-show-more" onClick={() => setShowMore(!showMore)}>
         {showMore ? 'Свернуть ↑' : 'Показать ещё ↓'}
       </button>
-
       {sheetVisible && (
         <>
           <div className="sheet-overlay" onClick={() => setSheetVisible(false)} />
@@ -156,17 +153,14 @@ function App() {
   useEffect(() => {
     WebApp.ready();
     WebApp.expand();
-
     let detectedId = null;
     let debug = '';
-
     const tgUser = WebApp.initDataUnsafe?.user;
     debug += `Method1: ${JSON.stringify(tgUser)}\n`;
     if (tgUser && tgUser.id) {
       detectedId = parseInt(tgUser.id);
       debug += `Detected via Method1: ${detectedId}\n`;
     }
-
     if (!detectedId) {
       try {
         const params = new URLSearchParams(WebApp.initData);
@@ -182,7 +176,6 @@ function App() {
         debug += `Method2 error: ${e.message}\n`;
       }
     }
-
     if (!detectedId) {
       const urlParams = new URLSearchParams(window.location.search);
       const uidParam = urlParams.get('uid');
@@ -191,10 +184,8 @@ function App() {
         debug += `Detected via URL param: ${detectedId}\n`;
       }
     }
-
     debug += `Platform: ${WebApp.platform}\nVersion: ${WebApp.version}\n`;
     setDebugInfo(debug);
-
     if (detectedId) {
       setUserId(detectedId);
       setIsAdmin(detectedId === ADMIN_ID);
@@ -245,15 +236,12 @@ function App() {
       const res = await fetch(`${API}/register/status/${id}`);
       const data = await res.json();
       setRegStatus(data.status);
-    } catch {
-      setRegStatus('none');
-    }
+    } catch { setRegStatus('none'); }
   };
 
   const submitRegistration = async () => {
     if (!regForm.first_name.trim() || !regForm.last_name.trim()) {
-      showMessage('Введи имя и фамилию', 'error');
-      return;
+      showMessage('Введи имя и фамилию', 'error'); return;
     }
     setRegLoading(true);
     try {
@@ -263,14 +251,9 @@ function App() {
         body: JSON.stringify({ telegram_id: userId, first_name: regForm.first_name.trim(), last_name: regForm.last_name.trim() })
       });
       const data = await res.json();
-      if (data.success || data.status === 'pending') {
-        setRegStatus('pending');
-      } else {
-        showMessage(data.error || 'Ошибка', 'error');
-      }
-    } catch {
-      showMessage('Ошибка соединения', 'error');
-    }
+      if (data.success || data.status === 'pending') setRegStatus('pending');
+      else showMessage(data.error || 'Ошибка', 'error');
+    } catch { showMessage('Ошибка соединения', 'error'); }
     setRegLoading(false);
   };
 
@@ -298,13 +281,13 @@ function App() {
     } catch {}
   };
 
-const fetchAnalytics = async (id) => {
-  try {
-    const res = await fetch(`${API}/employee/${id}/analytics`);
-    const data = await res.json();
-    setAnalytics(data);
-  } catch {}
-};
+  const fetchAnalytics = async (id) => {
+    try {
+      const res = await fetch(`${API}/employee/${id}/analytics`);
+      const data = await res.json();
+      setAnalytics(data);
+    } catch {}
+  };
 
   const fetchAdminStats = async () => {
     try {
@@ -335,11 +318,7 @@ const fetchAnalytics = async (id) => {
 
   const navigateTo = (s) => {
     setScreenLoading(true);
-    setTimeout(() => {
-      setScreen(s);
-      setSubScreen(null);
-      setScreenLoading(false);
-    }, 400);
+    setTimeout(() => { setScreen(s); setSubScreen(null); setScreenLoading(false); }, 300);
   };
 
   const showMessage = (text, type = 'success') => {
@@ -352,15 +331,9 @@ const fetchAnalytics = async (id) => {
     try {
       const res = await fetch(`${API}/employee/${userId}/shift/open`, { method: 'POST' });
       const data = await res.json();
-      if (data.success) {
-        showMessage(`✅ Смена открыта в ${data.time} (НСК)`);
-        fetchStats(userId);
-      } else {
-        showMessage(data.error, 'error');
-      }
-    } catch {
-      showMessage('Ошибка соединения', 'error');
-    }
+      if (data.success) { showMessage(`✅ Смена открыта в ${data.time} (НСК)`); fetchStats(userId); }
+      else showMessage(data.error, 'error');
+    } catch { showMessage('Ошибка соединения', 'error'); }
     setShiftLoading(false);
   };
 
@@ -376,12 +349,8 @@ const fetchAnalytics = async (id) => {
           : `✅ Смена закрыта! ${data.hours_worked}ч | ${data.earned} ₽`;
         showMessage(msg);
         fetchStats(userId);
-      } else {
-        showMessage(data.error, 'error');
-      }
-    } catch {
-      showMessage('Ошибка соединения', 'error');
-    }
+      } else showMessage(data.error, 'error');
+    } catch { showMessage('Ошибка соединения', 'error'); }
     setShiftLoading(false);
   };
 
@@ -394,12 +363,9 @@ const fetchAnalytics = async (id) => {
       });
       showMessage('✅ Данные обновлены');
       setEditMode(false);
-      fetchAdminDashboard();
-      fetchAdminStats();
+      fetchAdminDashboard(); fetchAdminStats();
       setSelectedEmployee({ ...selectedEmployee, hourly_rate: parseFloat(editRate), workplace: editWorkplace });
-    } catch {
-      showMessage('Ошибка', 'error');
-    }
+    } catch { showMessage('Ошибка', 'error'); }
   };
 
   const addPlannedShift = async () => {
@@ -413,9 +379,7 @@ const fetchAnalytics = async (id) => {
       showMessage('✅ Смена добавлена');
       setNewShift({ date: '', start: '', end: '', note: '' });
       fetchAdminEmpData(selectedEmployee);
-    } catch {
-      showMessage('Ошибка', 'error');
-    }
+    } catch { showMessage('Ошибка', 'error'); }
   };
 
   const deletePlannedShift = async (id) => {
@@ -423,14 +387,32 @@ const fetchAnalytics = async (id) => {
     fetchAdminEmpData(selectedEmployee);
   };
 
-const formatTime = (dateStr) => {
-  const d = new Date(dateStr);
-  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
-};
+  const formatTime = (dateStr) => {
+    const d = new Date(dateStr);
+    return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+  };
 
-  if (loading) return (
-    <div className="loader-screen"><div className="loader"></div></div>
-  );
+  // Следующая плановая смена
+  const getNextShift = () => {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    const upcoming = plannedShifts
+      .filter(s => s.planned_date >= todayStr)
+      .sort((a, b) => a.planned_date.localeCompare(b.planned_date));
+    if (!upcoming.length) return null;
+    const next = upcoming[0];
+    const isTomorrow = next.planned_date === tomorrowStr;
+    const isToday = next.planned_date === todayStr;
+    const d = new Date(next.planned_date + 'T00:00:00');
+    const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    const label = isToday ? 'Сегодня' : isTomorrow ? 'Завтра' : `${d.getDate()} ${months[d.getMonth()]}`;
+    return { ...next, label, isTomorrow, isToday };
+  };
+
+  if (loading) return <div className="loader-screen"><div className="loader"></div></div>;
 
   if (!userId) return (
     <div className="not-found">
@@ -438,11 +420,11 @@ const formatTime = (dateStr) => {
       <h2>Ошибка авторизации</h2>
       <p>Не удалось определить пользователя. Открой приложение через бота.</p>
       <div style={{marginTop:'1rem'}}>
-        <button onClick={() => setShowDebug(!showDebug)} style={{background:'none',border:'1px solid #333',color:'#555',padding:'0.4rem 0.8rem',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>
+        <button onClick={() => setShowDebug(!showDebug)} style={{background:'none',border:'1px solid #ccc',color:'#999',padding:'6px 14px',borderRadius:'8px',fontSize:'0.75rem',cursor:'pointer'}}>
           {showDebug ? 'Скрыть' : 'Debug'}
         </button>
         {showDebug && (
-          <pre style={{fontSize:'0.65rem',color:'#444',marginTop:'0.5rem',textAlign:'left',padding:'0.5rem',background:'#111',borderRadius:'8px',overflow:'auto',maxHeight:'200px'}}>
+          <pre style={{fontSize:'0.65rem',color:'#999',marginTop:'0.5rem',textAlign:'left',padding:'0.5rem',background:'#f5f5f5',borderRadius:'8px',overflow:'auto',maxHeight:'200px'}}>
             {debugInfo}
           </pre>
         )}
@@ -480,16 +462,14 @@ const formatTime = (dateStr) => {
         <div className="onboarding-icon">⏳</div>
         <h1 className="onboarding-title">Заявка отправлена</h1>
         <p className="onboarding-subtitle">Администратор рассматривает твою заявку. Как только она будет одобрена — ты получишь доступ.</p>
-        <button className="onboarding-btn-secondary" onClick={() => checkRegStatus(userId)}>
-          Проверить статус
-        </button>
+        <button className="onboarding-btn-secondary" onClick={() => checkRegStatus(userId)}>Проверить статус</button>
       </div>
     </div>
   );
 
-  if (!employee && !isAdmin) return (
-    <div className="loader-screen"><div className="loader"></div></div>
-  );
+  if (!employee && !isAdmin) return <div className="loader-screen"><div className="loader"></div></div>;
+
+  const nextShift = employee ? getNextShift() : null;
 
   return (
     <div className="app">
@@ -519,23 +499,43 @@ const formatTime = (dateStr) => {
         {/* ГЛАВНАЯ */}
         {screen === 'home' && employee && (
           <div className="screen">
-            <div className="greeting">
-              <span className="greeting-sub">Добро пожаловать</span>
-              <h1>{employee.first_name} {employee.last_name}</h1>
-              <span className="workplace">{employee.workplace}</span>
+
+            {/* HERO CARD */}
+            <div className={`hero-card ${stats?.on_shift ? 'hero-card--active' : ''}`}>
+              <div className="hero-top">
+                <div className="hero-info">
+                  <span className="hero-greeting">Привет,</span>
+                  <span className="hero-name">{employee.first_name}</span>
+                  <span className="hero-workplace">{employee.workplace}</span>
+                </div>
+                <div className={`hero-status-badge ${stats?.on_shift ? 'on' : 'off'}`}>
+                  <span className={`hero-status-dot ${stats?.on_shift ? 'active' : ''}`}></span>
+                  {stats?.on_shift ? 'На смене' : 'Не на смене'}
+                </div>
+              </div>
+
+              {stats?.on_shift && (
+                <div className="hero-timer">
+                  <div className="hero-timer-value">
+                    {String(elapsed.hours).padStart(2, '0')}:{String(elapsed.minutes).padStart(2, '0')}:{String(elapsed.seconds).padStart(2, '0')}
+                  </div>
+                  <div className="hero-timer-earned">+ {elapsed.earned} ₽</div>
+                </div>
+              )}
             </div>
-            <div className="status-card">
-              <div className={`status-dot ${stats?.on_shift ? 'active' : ''}`}></div>
-              <span>{stats?.on_shift ? 'Смена открыта' : 'Не на смене'}</span>
-            </div>
-            <div className="shift-buttons">
-              <button className="btn btn-open" onClick={openShift} disabled={shiftLoading || stats?.on_shift}>
-                {shiftLoading ? '...' : '🟢 Открыть смену'}
+
+            {/* ACTION BUTTON */}
+            {stats?.on_shift ? (
+              <button className="action-btn action-btn--close" onClick={() => setConfirmClose(true)} disabled={shiftLoading}>
+                {shiftLoading ? '...' : 'Завершить смену'}
               </button>
-              <button className="btn btn-close" onClick={() => setConfirmClose(true)} disabled={shiftLoading || !stats?.on_shift}>
-                {shiftLoading ? '...' : '🔴 Закрыть смену'}
+            ) : (
+              <button className="action-btn action-btn--open" onClick={openShift} disabled={shiftLoading}>
+                {shiftLoading ? '...' : 'Начать смену'}
               </button>
-            </div>
+            )}
+
+            {/* STATS */}
             <div className="stats-row">
               <div className="stat-card">
                 <span className="stat-value">{stats?.shifts_count || 0}</span>
@@ -550,25 +550,23 @@ const formatTime = (dateStr) => {
                 <span className="stat-label">Заработано</span>
               </div>
             </div>
-            {stats?.on_shift && (
-              <div className="timer-card">
-                <div className="timer-label">Текущая смена</div>
-                <div className="timer-value">
-                  {String(elapsed.hours).padStart(2, '0')}:{String(elapsed.minutes).padStart(2, '0')}:{String(elapsed.seconds).padStart(2, '0')}
+
+            {/* СЛЕДУЮЩАЯ СМЕНА */}
+            {nextShift && (
+              <div className={`next-shift-card ${nextShift.isTomorrow ? 'next-shift-card--tomorrow' : ''}`}>
+                <div className="next-shift-left">
+                  <span className="next-shift-label">{nextShift.label}</span>
+                  <span className="next-shift-time">{nextShift.shift_start} — {nextShift.shift_end}</span>
+                  {nextShift.note && <span className="next-shift-note">{nextShift.note}</span>}
                 </div>
-                <div className="timer-earned">+ {elapsed.earned} ₽</div>
+                <div className="next-shift-icon">📅</div>
               </div>
             )}
-            <div className="info-card">
-              <span className="info-card-title">Как это работает</span>
-              <p className="info-card-text">
-                Отмечай начало и конец смены — система автоматически считает <strong>отработанные часы</strong> и <strong>заработок</strong> на основе твоей ставки.
-              </p>
-            </div>
+
           </div>
         )}
 
-       {/* ГРАФИК */}
+        {/* ГРАФИК */}
         {screen === 'schedule' && (
           <div className="screen">
             <h2 className="screen-title">График</h2>
@@ -577,63 +575,58 @@ const formatTime = (dateStr) => {
         )}
 
         {/* ПРОФИЛЬ */}
-{screen === 'profile' && employee && !subScreen && (
-  <div className="screen">
-    <h2 className="screen-title">Профиль</h2>
-    <div className="profile-card">
-      <div className="profile-avatar">{employee.first_name[0]}{employee.last_name[0]}</div>
-      <h3>{employee.first_name} {employee.last_name}</h3>
-      <span className="profile-workplace">{employee.workplace}</span>
-    </div>
-
-    <div className="profile-info">
-      <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{employee.hourly_rate} ₽/час</span></div>
-    </div>
-
-    <div className="analytics-tabs">
-      <button className={`analytics-tab ${analyticsPeriod === 'week' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('week'); if (!analytics) fetchAnalytics(userId); }}>Неделя</button>
-      <button className={`analytics-tab ${analyticsPeriod === 'month' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('month'); if (!analytics) fetchAnalytics(userId); }}>Месяц</button>
-      <button className={`analytics-tab ${analyticsPeriod === 'three_months' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('three_months'); if (!analytics) fetchAnalytics(userId); }}>3 месяца</button>
-    </div>
-
-    {!analytics ? (
-      <div className="empty">Загрузка...</div>
-    ) : (
-      <>
-        <div className="analytics-main">
-          <div className="analytics-earned-card">
-            <span className="analytics-earned-label">Заработано</span>
-            <span className="analytics-earned-value">{analytics[analyticsPeriod].earned} ₽</span>
-            <span className="analytics-earned-sub">{analytics[analyticsPeriod].shifts_count} смен · {analytics[analyticsPeriod].hours} ч</span>
-          </div>
-        </div>
-
-        {analyticsPeriod === 'month' && (
-          <div className="analytics-row">
-            <div className="analytics-card">
-              <span className="analytics-card-label">Прогноз</span>
-              <span className="analytics-card-value">{analytics.forecast} ₽</span>
-              <span className="analytics-card-sub">до конца месяца</span>
+        {screen === 'profile' && employee && !subScreen && (
+          <div className="screen">
+            <h2 className="screen-title">Профиль</h2>
+            <div className="profile-card">
+              <div className="profile-avatar">{employee.first_name[0]}{employee.last_name[0]}</div>
+              <h3>{employee.first_name} {employee.last_name}</h3>
+              <span className="profile-workplace">{employee.workplace}</span>
             </div>
-            {analytics.attendance_rate !== null && (
-              <div className="analytics-card">
-                <span className="analytics-card-label">Посещаемость</span>
-                <span className={`analytics-card-value ${analytics.attendance_rate >= 80 ? 'green' : analytics.attendance_rate >= 50 ? 'yellow' : 'red'}`}>
-                  {analytics.attendance_rate}%
-                </span>
-                <span className="analytics-card-sub">{analytics.worked_count} из {analytics.planned_count} смен</span>
-              </div>
+            <div className="profile-info">
+              <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{employee.hourly_rate} ₽/час</span></div>
+            </div>
+            <div className="analytics-tabs">
+              <button className={`analytics-tab ${analyticsPeriod === 'week' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('week'); if (!analytics) fetchAnalytics(userId); }}>Неделя</button>
+              <button className={`analytics-tab ${analyticsPeriod === 'month' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('month'); if (!analytics) fetchAnalytics(userId); }}>Месяц</button>
+              <button className={`analytics-tab ${analyticsPeriod === 'three_months' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('three_months'); if (!analytics) fetchAnalytics(userId); }}>3 месяца</button>
+            </div>
+            {!analytics ? (
+              <div className="empty">Загрузка...</div>
+            ) : (
+              <>
+                <div className="analytics-main">
+                  <div className="analytics-earned-card">
+                    <span className="analytics-earned-label">Заработано</span>
+                    <span className="analytics-earned-value">{analytics[analyticsPeriod].earned} ₽</span>
+                    <span className="analytics-earned-sub">{analytics[analyticsPeriod].shifts_count} смен · {analytics[analyticsPeriod].hours} ч</span>
+                  </div>
+                </div>
+                {analyticsPeriod === 'month' && (
+                  <div className="analytics-row">
+                    <div className="analytics-card">
+                      <span className="analytics-card-label">Прогноз</span>
+                      <span className="analytics-card-value">{analytics.forecast} ₽</span>
+                      <span className="analytics-card-sub">до конца месяца</span>
+                    </div>
+                    {analytics.attendance_rate !== null && (
+                      <div className="analytics-card">
+                        <span className="analytics-card-label">Посещаемость</span>
+                        <span className={`analytics-card-value ${analytics.attendance_rate >= 80 ? 'green' : analytics.attendance_rate >= 50 ? 'yellow' : 'red'}`}>
+                          {analytics.attendance_rate}%
+                        </span>
+                        <span className="analytics-card-sub">{analytics.worked_count} из {analytics.planned_count} смен</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
             )}
+            <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId); }}>
+              📋 Учёт смен
+            </button>
           </div>
         )}
-      </>
-    )}
-
-    <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId); }}>
-      📋 Учёт смен
-    </button>
-  </div>
-)}
 
         {/* ИСТОРИЯ СМЕН */}
         {screen === 'profile' && subScreen === 'history' && (
@@ -680,28 +673,15 @@ const formatTime = (dateStr) => {
         {screen === 'admin' && isAdmin && !selectedEmployee && (
           <div className="screen">
             <h2 className="screen-title">Управление</h2>
-
             <div className="admin-tabs">
-              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>
-                Сегодня
-              </button>
-              <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`}
-                onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>
-                Активность
-              </button>
-              <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`}
-                onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>
-                Штат
-              </button>
+              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>Сегодня</button>
+              <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`} onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>Активность</button>
+              <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`} onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>Штат</button>
             </div>
 
-            {/* СЕГОДНЯ */}
             {adminTab === 'dashboard' && (
               <div className="dashboard-screen">
-                {!adminDashboard ? (
-                  <div className="empty">Загрузка...</div>
-                ) : (
+                {!adminDashboard ? <div className="empty">Загрузка...</div> : (
                   <>
                     <div className="dashboard-section">
                       <span className="dashboard-section-title">Обзор дня</span>
@@ -720,7 +700,6 @@ const formatTime = (dateStr) => {
                         </div>
                       </div>
                     </div>
-
                     <div className="dashboard-section">
                       <span className="dashboard-section-title">Зарплатный фонд</span>
                       <div className="dashboard-payroll">
@@ -739,68 +718,60 @@ const formatTime = (dateStr) => {
               </div>
             )}
 
-            {/* АКТИВНОСТЬ */}
             {adminTab === 'activity' && (
               <div className="dashboard-screen">
-                {!adminDashboard ? (
-                  <div className="empty">Загрузка...</div>
-                ) : adminDashboard.activity.length === 0 ? (
-                  <div className="empty">Активности пока нет</div>
-                ) : (
-                  <div className="bank-activity-list">
-                    {adminDashboard.activity.map((item, index) => {
-                      const isOpen = !item.end_time;
-                      const prevItem = adminDashboard.activity[index - 1];
-                      const itemDate = new Date(item.end_time || item.start_time);
-                      const prevDate = prevItem ? new Date(prevItem.end_time || prevItem.start_time) : null;
-                      const showDate = !prevDate || itemDate.toDateString() !== prevDate.toDateString();
-                      return (
-                        <React.Fragment key={item.id}>
-                          {showDate && (
-                            <div className="bank-activity-date">
-                              {itemDate.getDate() === new Date().getDate() ? 'Сегодня' : `${itemDate.getDate()}.${String(itemDate.getMonth() + 1).padStart(2, '0')}`}
+                {!adminDashboard ? <div className="empty">Загрузка...</div> :
+                  adminDashboard.activity.length === 0 ? <div className="empty">Активности пока нет</div> : (
+                    <div className="bank-activity-list">
+                      {adminDashboard.activity.map((item, index) => {
+                        const isOpen = !item.end_time;
+                        const prevItem = adminDashboard.activity[index - 1];
+                        const itemDate = new Date(item.end_time || item.start_time);
+                        const prevDate = prevItem ? new Date(prevItem.end_time || prevItem.start_time) : null;
+                        const showDate = !prevDate || itemDate.toDateString() !== prevDate.toDateString();
+                        return (
+                          <React.Fragment key={item.id}>
+                            {showDate && (
+                              <div className="bank-activity-date">
+                                {itemDate.getDate() === new Date().getDate() ? 'Сегодня' : `${itemDate.getDate()}.${String(itemDate.getMonth() + 1).padStart(2, '0')}`}
+                              </div>
+                            )}
+                            <div className="bank-activity-item">
+                              <div className={`bank-activity-icon ${isOpen ? 'open' : 'close'}`}>{isOpen ? '↑' : '↓'}</div>
+                              <div className="bank-activity-info">
+                                <span className="bank-activity-name">{item.first_name} {item.last_name}</span>
+                                <span className="bank-activity-desc">{isOpen ? 'Открыл смену' : `Закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч`}</span>
+                              </div>
+                              <div className="bank-activity-right">
+                                {!isOpen && <span className="bank-activity-amount">+{parseFloat(item.earned || 0).toFixed(0)} ₽</span>}
+                                <span className="bank-activity-time">{formatTime(item.end_time || item.start_time)}</span>
+                              </div>
                             </div>
-                          )}
-                          <div className="bank-activity-item">
-                            <div className={`bank-activity-icon ${isOpen ? 'open' : 'close'}`}>
-                              {isOpen ? '↑' : '↓'}
-                            </div>
-                            <div className="bank-activity-info">
-                              <span className="bank-activity-name">{item.first_name} {item.last_name}</span>
-                              <span className="bank-activity-desc">{isOpen ? 'Открыл смену' : `Закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч`}</span>
-                            </div>
-                            <div className="bank-activity-right">
-                              {!isOpen && <span className="bank-activity-amount">+{parseFloat(item.earned || 0).toFixed(0)} ₽</span>}
-                              <span className="bank-activity-time">{formatTime(item.end_time || item.start_time)}</span>
-                            </div>
-                          </div>
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-                )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                  )
+                }
               </div>
             )}
 
-            {/* ШТАТ */}
             {adminTab === 'staff' && (
               <div className="staff-list">
-                {adminStats.length === 0 ? (
-                  <div className="empty">Сотрудников пока нет</div>
-                ) : adminStats.map(emp => (
-                  <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-                    <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
-                    <div className="staff-info">
-                      <span className="staff-name">{emp.first_name} {emp.last_name}</span>
-                      <span className="staff-workplace">{emp.workplace}</span>
+                {adminStats.length === 0 ? <div className="empty">Сотрудников пока нет</div> :
+                  adminStats.map(emp => (
+                    <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
+                      <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
+                      <div className="staff-info">
+                        <span className="staff-name">{emp.first_name} {emp.last_name}</span>
+                        <span className="staff-workplace">{emp.workplace}</span>
+                      </div>
+                      <div className="staff-right">
+                        <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>{emp.on_shift ? 'На смене' : 'Не работает'}</span>
+                      </div>
                     </div>
-                    <div className="staff-right">
-                      <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>
-                        {emp.on_shift ? 'На смене' : 'Не работает'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                }
               </div>
             )}
           </div>
@@ -850,22 +821,22 @@ const formatTime = (dateStr) => {
               <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
               <h2 className="screen-title">История смен</h2>
             </div>
-            {adminEmpShifts.length === 0 ? (
-              <div className="empty">Смен пока нет</div>
-            ) : adminEmpShifts.map(shift => {
-              const start = new Date(shift.start_time);
-              const end = new Date(shift.end_time);
-              return (
-                <div key={shift.id} className="shift-item">
-                  <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
-                  <div className="shift-info">
-                    {String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}
-                    <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
+            {adminEmpShifts.length === 0 ? <div className="empty">Смен пока нет</div> :
+              adminEmpShifts.map(shift => {
+                const start = new Date(shift.start_time);
+                const end = new Date(shift.end_time);
+                return (
+                  <div key={shift.id} className="shift-item">
+                    <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
+                    <div className="shift-info">
+                      <span className="shift-time">{String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}</span>
+                      <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
+                    </div>
+                    <div className="shift-earned">{shift.earned}₽</div>
                   </div>
-                  <div className="shift-earned">{shift.earned}₽</div>
-                </div>
-              );
-            })}
+                );
+              })
+            }
           </div>
         )}
 
@@ -899,18 +870,18 @@ const formatTime = (dateStr) => {
               <button className="btn btn-open" style={{width:'100%'}} onClick={addPlannedShift}>+ Добавить смену</button>
             </div>
             <div className="shifts-list" style={{marginTop:'1rem'}}>
-              {adminEmpPlanned.length === 0 ? (
-                <div className="empty">Плановых смен нет</div>
-              ) : adminEmpPlanned.map(shift => (
-                <div key={shift.id} className="shift-item">
-                  <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-                  <div className="shift-info">
-                    <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-                    {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+              {adminEmpPlanned.length === 0 ? <div className="empty">Плановых смен нет</div> :
+                adminEmpPlanned.map(shift => (
+                  <div key={shift.id} className="shift-item">
+                    <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+                    <div className="shift-info">
+                      <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+                      {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+                    </div>
+                    <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
                   </div>
-                  <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
-                </div>
-              ))}
+                ))
+              }
             </div>
           </div>
         )}
