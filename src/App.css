@@ -1396,13 +1396,13 @@ body {
 
 .bottom-sheet {
   position: fixed;
-  bottom: 0;
+  bottom: 80px;
   left: 0;
   right: 0;
   background: #1c1c1c;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px 20px 0 0;
-  padding: 1rem 1.5rem 3rem;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 1rem 1.5rem 1.5rem;
   z-index: 101;
   display: flex;
   flex-direction: column;
@@ -1456,6 +1456,30 @@ body {
   font-size: 0.78rem;
   color: #6fcf7a;
   font-weight: 600;
+}
+
+.sheet-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+
+.sheet-close {
+  position: absolute;
+  right: 0;
+  background: rgba(255,255,255,0.07);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: #666;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-btn:active { background: rgba(239,83,80,0.18); }

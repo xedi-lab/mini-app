@@ -14,7 +14,7 @@ function ScheduleCalendar({ shifts }) {
 
   const weeksToShow = showMore ? 6 : 2;
   const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Пн
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1);
 
   const days = Array.from({ length: weeksToShow * 7 }, (_, i) => {
     const d = new Date(startOfWeek);
@@ -40,23 +40,19 @@ function ScheduleCalendar({ shifts }) {
   const formatSheetDate = (dateStr) => {
     if (!dateStr) return '';
     const d = new Date(dateStr + 'T00:00:00');
-    const days = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
-    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()].toLowerCase()}`;
+    const weekDays = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+    return `${weekDays[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()].toLowerCase()}`;
   };
 
-  // Группируем дни по неделям
   const weeks = [];
   for (let i = 0; i < days.length; i += 7) {
     weeks.push(days.slice(i, i + 7));
   }
 
-  // Месяц для заголовка
-  const currentMonth = months[today.getMonth()];
-
   return (
     <div className="schedule-calendar">
       <div className="calendar-header-row">
-        <span className="calendar-month-label">{currentMonth} {today.getFullYear()}</span>
+        <span className="calendar-month-label">{months[today.getMonth()]} {today.getFullYear()}</span>
       </div>
 
       <div className="calendar-grid-wrap">
@@ -65,7 +61,6 @@ function ScheduleCalendar({ shifts }) {
             <span key={d} className="calendar-weekday">{d}</span>
           ))}
         </div>
-
         <div className="calendar-grid">
           {weeks.map((week, wi) => (
             <div key={wi} className="calendar-week">
@@ -99,7 +94,10 @@ function ScheduleCalendar({ shifts }) {
         <>
           <div className="sheet-overlay" onClick={() => setSheetVisible(false)} />
           <div className="bottom-sheet">
-            <div className="sheet-handle" />
+            <div className="sheet-top-row">
+              <div className="sheet-handle" />
+              <button className="sheet-close" onClick={() => setSheetVisible(false)}>✕</button>
+            </div>
             <div className="sheet-date">{formatSheetDate(selectedDate)}</div>
             {selectedShifts.map(shift => (
               <div key={shift.id} className="sheet-shift-card">
