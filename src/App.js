@@ -300,7 +300,7 @@ function App() {
 
 const formatTime = (dateStr) => {
   const d = new Date(dateStr);
-  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Novosibirsk' });
+  return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
 };
 
   if (loading) return (
