@@ -384,6 +384,7 @@ function App() {
       ]);
       setAdminEmpShifts(await shiftsRes.json());
       setAdminEmpPlanned(await plannedRes.json());
+      if (emp.telegram_id === userId) fetchPlanned(userId);
     } catch {}
   };
 
