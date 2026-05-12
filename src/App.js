@@ -191,7 +191,7 @@ function TimePicker({ value, onChange, label }) {
     if (minRef.current) {
       minRef.current.scrollTop = parseInt(selectedMinute) * ITEM_HEIGHT;
     }
-  }, []);
+  }, [selectedHour, selectedMinute]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleHourScroll = (e) => {
     const idx = Math.round(e.target.scrollTop / ITEM_HEIGHT);
