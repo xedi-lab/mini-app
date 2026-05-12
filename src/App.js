@@ -298,10 +298,9 @@ function App() {
     fetchAdminEmpData(selectedEmployee);
   };
 
- const formatTime = (dateStr) => {
+const formatTime = (dateStr) => {
   const d = new Date(dateStr);
-  const nsk = new Date(d.getTime() + 7 * 60 * 60 * 1000);
-  return `${String(nsk.getUTCHours()).padStart(2, '0')}:${String(nsk.getUTCMinutes()).padStart(2, '0')}`;
+  return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Novosibirsk' });
 };
 
   if (loading) return (
