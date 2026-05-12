@@ -902,9 +902,18 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 13px 14px;
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer;
   box-shadow: var(--shadow-sm);
+  animation: cardIn 0.3s var(--ease) both;
+  transition: background 0.15s, transform 0.15s;
 }
+
+.staff-list .staff-card:nth-child(1) { animation-delay: 0.05s; }
+.staff-list .staff-card:nth-child(2) { animation-delay: 0.1s; }
+.staff-list .staff-card:nth-child(3) { animation-delay: 0.15s; }
+.staff-list .staff-card:nth-child(4) { animation-delay: 0.2s; }
+.staff-list .staff-card:nth-child(5) { animation-delay: 0.25s; }
+.staff-list .staff-card:nth-child(6) { animation-delay: 0.3s; }
 
 .staff-card:active { background: var(--bg); transform: scale(0.99); }
 
@@ -929,6 +938,44 @@ body {
   background: var(--bg);
   color: var(--text-tertiary);
   border: 1px solid var(--border);
+}
+
+/* CARD ANIMATIONS */
+.shift-item {
+  animation: cardIn 0.3s var(--ease) both;
+}
+
+.screen > .shift-item:nth-child(1),
+.shifts-list .shift-item:nth-child(1) { animation-delay: 0.05s; }
+.screen > .shift-item:nth-child(2),
+.shifts-list .shift-item:nth-child(2) { animation-delay: 0.1s; }
+.screen > .shift-item:nth-child(3),
+.shifts-list .shift-item:nth-child(3) { animation-delay: 0.15s; }
+.screen > .shift-item:nth-child(4),
+.shifts-list .shift-item:nth-child(4) { animation-delay: 0.2s; }
+.screen > .shift-item:nth-child(5),
+.shifts-list .shift-item:nth-child(5) { animation-delay: 0.25s; }
+
+.bank-activity-item {
+  animation: cardIn 0.25s var(--ease) both;
+}
+
+.bank-activity-item:nth-child(2) { animation-delay: 0.05s; }
+.bank-activity-item:nth-child(3) { animation-delay: 0.1s; }
+.bank-activity-item:nth-child(4) { animation-delay: 0.15s; }
+.bank-activity-item:nth-child(5) { animation-delay: 0.2s; }
+
+.dashboard-stat {
+  animation: cardIn 0.3s var(--ease) both;
+}
+
+.dashboard-stat:nth-child(1) { animation-delay: 0.05s; }
+.dashboard-stat:nth-child(2) { animation-delay: 0.1s; }
+.dashboard-stat:nth-child(3) { animation-delay: 0.15s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* SCHEDULE CALENDAR */
