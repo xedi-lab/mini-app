@@ -155,7 +155,6 @@ function DatePicker({ value, onChange }) {
 
 // ПИКЕР ВРЕМЕНИ
 function TimePicker({ value, onChange, label }) {
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
   const minutes = ['00', '15', '30', '45'];
 
   const [selectedHour, selectedMinute] = value ? value.split(':') : ['09', '00'];
