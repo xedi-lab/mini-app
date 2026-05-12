@@ -310,9 +310,7 @@ function App() {
   };
 
   if (loading) return (
-    <div className="loader-screen">
-      <div className="loader"></div>
-    </div>
+    <div className="loader-screen"><div className="loader"></div></div>
   );
 
   if (!userId) return (
@@ -538,15 +536,21 @@ function App() {
             <h2 className="screen-title">Управление</h2>
 
             <div className="admin-tabs">
-              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>
+              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>
                 Сегодня
               </button>
-              <button className={`admin-tab ${adminTab === 'employees' ? 'active' : ''}`} onClick={() => { setAdminTab('employees'); fetchAdminStats(); }}>
-                Сотрудники
+              <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`}
+                onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>
+                Активность
+              </button>
+              <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`}
+                onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>
+                Штат
               </button>
             </div>
 
-            {/* DASHBOARD TAB */}
+            {/* СЕГОДНЯ */}
             {adminTab === 'dashboard' && (
               <div className="dashboard-screen">
                 {!adminDashboard ? (
@@ -584,72 +588,70 @@ function App() {
                         </div>
                       </div>
                     </div>
-
-                    <div className="dashboard-section">
-                      <span className="dashboard-section-title">Сотрудники</span>
-                      <div className="dashboard-employees">
-                        {adminDashboard.employees.map(emp => {
-                          const { label, cls } = getStatusLabel(emp.status);
-                          return (
-                            <div key={emp.id} className="dashboard-employee-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-                              <div className="dashboard-emp-avatar">
-                                {emp.first_name[0]}{emp.last_name[0]}
-                              </div>
-                              <div className="dashboard-emp-info">
-                                <span className="dashboard-emp-name">{emp.first_name} {emp.last_name}</span>
-                                <span className="dashboard-emp-meta">
-                                  {emp.on_shift && emp.open_shift ? `С ${formatTime(emp.open_shift.start_time)}` : emp.worked_today ? `${emp.today_hours.toFixed(1)}ч · ${emp.today_earned.toFixed(0)}₽` : emp.workplace}
-                                </span>
-                              </div>
-                              <span className={`dashboard-emp-status ${cls}`}>{label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="dashboard-section">
-                      <span className="dashboard-section-title">Активность</span>
-                      <div className="activity-list">
-                        {adminDashboard.activity.length === 0 ? (
-                          <div className="empty" style={{padding:'1rem 0'}}>Активности пока нет</div>
-                        ) : adminDashboard.activity.map(item => (
-                          <div key={item.id} className="activity-item">
-                            <div className={`activity-dot ${item.end_time ? 'close' : 'open'}`}></div>
-                            <span className="activity-text">
-                              <strong>{item.first_name} {item.last_name}</strong>
-                              {item.end_time ? ` закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч` : ' открыл смену'}
-                            </span>
-                            <span className="activity-time">{formatTime(item.end_time || item.start_time)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
                   </>
                 )}
               </div>
             )}
 
-            {/* EMPLOYEES TAB */}
-            {adminTab === 'employees' && (
-              <div>
+            {/* АКТИВНОСТЬ */}
+            {adminTab === 'activity' && (
+              <div className="dashboard-screen">
+                {!adminDashboard ? (
+                  <div className="empty">Загрузка...</div>
+                ) : adminDashboard.activity.length === 0 ? (
+                  <div className="empty">Активности пока нет</div>
+                ) : (
+                  <div className="bank-activity-list">
+                    {adminDashboard.activity.map((item, index) => {
+                      const isOpen = !item.end_time;
+                      const prevItem = adminDashboard.activity[index - 1];
+                      const itemDate = new Date(item.end_time || item.start_time);
+                      const prevDate = prevItem ? new Date(prevItem.end_time || prevItem.start_time) : null;
+                      const showDate = !prevDate || itemDate.toDateString() !== prevDate.toDateString();
+                      return (
+                        <React.Fragment key={item.id}>
+                          {showDate && (
+                            <div className="bank-activity-date">
+                              {itemDate.getDate() === new Date().getDate() ? 'Сегодня' : `${itemDate.getDate()}.${String(itemDate.getMonth() + 1).padStart(2, '0')}`}
+                            </div>
+                          )}
+                          <div className="bank-activity-item">
+                            <div className={`bank-activity-icon ${isOpen ? 'open' : 'close'}`}>
+                              {isOpen ? '↑' : '↓'}
+                            </div>
+                            <div className="bank-activity-info">
+                              <span className="bank-activity-name">{item.first_name} {item.last_name}</span>
+                              <span className="bank-activity-desc">{isOpen ? 'Открыл смену' : `Закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч`}</span>
+                            </div>
+                            <div className="bank-activity-right">
+                              {!isOpen && <span className="bank-activity-amount">+{parseFloat(item.earned || 0).toFixed(0)} ₽</span>}
+                              <span className="bank-activity-time">{formatTime(item.end_time || item.start_time)}</span>
+                            </div>
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ШТАТ */}
+            {adminTab === 'staff' && (
+              <div className="staff-list">
                 {adminStats.length === 0 ? (
                   <div className="empty">Сотрудников пока нет</div>
                 ) : adminStats.map(emp => (
-                  <div key={emp.id} className="admin-employee-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-                    <div className="admin-employee-header">
-                      <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
-                      <div className="admin-employee-info">
-                        <span className="admin-employee-name">{emp.first_name} {emp.last_name}</span>
-                        <span className="admin-employee-workplace">{emp.workplace}</span>
-                      </div>
-                      <div>{emp.on_shift ? '🟢' : '⚪'}</div>
+                  <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
+                    <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
+                    <div className="staff-info">
+                      <span className="staff-name">{emp.first_name} {emp.last_name}</span>
+                      <span className="staff-workplace">{emp.workplace}</span>
                     </div>
-                    <div className="admin-employee-stats">
-                      <div className="admin-stat"><span className="admin-stat-value">{emp.shifts_count || 0}</span><span className="admin-stat-label">Смен</span></div>
-                      <div className="admin-stat"><span className="admin-stat-value">{emp.total_hours ? parseFloat(emp.total_hours).toFixed(1) : '0'}ч</span><span className="admin-stat-label">Часов</span></div>
-                      <div className="admin-stat"><span className="admin-stat-value">{emp.total_earned ? parseFloat(emp.total_earned).toFixed(0) : '0'}₽</span><span className="admin-stat-label">Заработано</span></div>
-                      <div className="admin-stat"><span className="admin-stat-value">{emp.hourly_rate}₽</span><span className="admin-stat-label">Ставка/ч</span></div>
+                    <div className="staff-right">
+                      <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>
+                        {emp.on_shift ? 'На смене' : 'Не работает'}
+                      </span>
                     </div>
                   </div>
                 ))}

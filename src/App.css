@@ -1097,4 +1097,175 @@ body {
   color: #fff;
 }
 
+/* BANK ACTIVITY */
+.bank-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.bank-activity-date {
+  font-size: 0.72rem;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 1.2rem 0 0.6rem;
+}
+
+.bank-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.bank-activity-item:last-child { border-bottom: none; }
+
+.bank-activity-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.bank-activity-icon.open {
+  background: rgba(76,175,80,0.12);
+  color: #6fcf7a;
+  border: 1px solid rgba(76,175,80,0.2);
+}
+
+.bank-activity-icon.close {
+  background: rgba(255,255,255,0.05);
+  color: #666;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.bank-activity-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.bank-activity-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.bank-activity-desc {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.bank-activity-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.bank-activity-amount {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6fcf7a;
+}
+
+.bank-activity-time {
+  font-size: 0.72rem;
+  color: #444;
+}
+
+/* ШТАТ */
+.staff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.staff-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.staff-card:active {
+  background: rgba(255,255,255,0.07);
+  transform: scale(0.99);
+}
+
+.staff-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.staff-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.staff-workplace {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.staff-right {
+  display: flex;
+  align-items: center;
+}
+
+.staff-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+
+.staff-status.on {
+  background: rgba(76,175,80,0.12);
+  color: #6fcf7a;
+  border: 1px solid rgba(76,175,80,0.2);
+}
+
+.staff-status.off {
+  background: rgba(255,255,255,0.04);
+  color: #444;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* DASHBOARD FIX */
+.dashboard-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-section-title {
+  font-size: 0.72rem;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 .delete-btn:active { background: rgba(239,83,80,0.18); }
