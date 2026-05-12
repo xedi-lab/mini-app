@@ -79,7 +79,7 @@ function ScheduleCalendar({ shifts }) {
           {weeks.map((week, wi) => (
             <div key={wi} className="calendar-week">
               {week.map(d => {
-                const dateStr = d.toISOString().slice(0, 10);
+                const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDate;
                 const hasS = hasShift(dateStr);
@@ -154,7 +154,7 @@ function DatePicker({ value, onChange }) {
     <div className="date-picker-wrap">
       <div className="date-picker-scroll">
         {days.map(d => {
-          const dateStr = d.toISOString().slice(0, 10);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
           const isSelected = dateStr === value;
           const isToday = d.toDateString() === today.toDateString();
           return (
