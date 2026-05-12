@@ -14,7 +14,6 @@ function ScheduleCalendar({ shifts }) {
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
   const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
   const startOfGrid = new Date(monthStart);
   const dayOfWeek = monthStart.getDay();
