@@ -303,12 +303,6 @@ function App() {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   };
 
-  const getStatusLabel = (status) => {
-    if (status === 'on_shift') return { label: 'На смене', cls: 'status-on-shift' };
-    if (status === 'done') return { label: 'Отработал', cls: 'status-done' };
-    return { label: 'Не вышел', cls: 'status-not-working' };
-  };
-
   if (loading) return (
     <div className="loader-screen"><div className="loader"></div></div>
   );
