@@ -150,6 +150,8 @@ function App() {
   const [regStatus, setRegStatus] = useState(null);
   const [regForm, setRegForm] = useState({ first_name: '', last_name: '' });
   const [regLoading, setRegLoading] = useState(false);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsPeriod, setAnalyticsPeriod] = useState('month');
 
   useEffect(() => {
     WebApp.ready();
@@ -295,6 +297,14 @@ function App() {
       setPastShifts(data);
     } catch {}
   };
+
+const fetchAnalytics = async (id) => {
+  try {
+    const res = await fetch(`${API}/employee/${id}/analytics`);
+    const data = await res.json();
+    setAnalytics(data);
+  } catch {}
+};
 
   const fetchAdminStats = async () => {
     try {
@@ -567,25 +577,63 @@ const formatTime = (dateStr) => {
         )}
 
         {/* ПРОФИЛЬ */}
-        {screen === 'profile' && employee && !subScreen && (
-          <div className="screen">
-            <h2 className="screen-title">Профиль</h2>
-            <div className="profile-card">
-              <div className="profile-avatar">{employee.first_name[0]}{employee.last_name[0]}</div>
-              <h3>{employee.first_name} {employee.last_name}</h3>
-              <span className="profile-workplace">{employee.workplace}</span>
+{screen === 'profile' && employee && !subScreen && (
+  <div className="screen">
+    <h2 className="screen-title">Профиль</h2>
+    <div className="profile-card">
+      <div className="profile-avatar">{employee.first_name[0]}{employee.last_name[0]}</div>
+      <h3>{employee.first_name} {employee.last_name}</h3>
+      <span className="profile-workplace">{employee.workplace}</span>
+    </div>
+
+    <div className="profile-info">
+      <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{employee.hourly_rate} ₽/час</span></div>
+    </div>
+
+    <div className="analytics-tabs">
+      <button className={`analytics-tab ${analyticsPeriod === 'week' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('week'); if (!analytics) fetchAnalytics(userId); }}>Неделя</button>
+      <button className={`analytics-tab ${analyticsPeriod === 'month' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('month'); if (!analytics) fetchAnalytics(userId); }}>Месяц</button>
+      <button className={`analytics-tab ${analyticsPeriod === 'three_months' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('three_months'); if (!analytics) fetchAnalytics(userId); }}>3 месяца</button>
+    </div>
+
+    {!analytics ? (
+      <div className="empty">Загрузка...</div>
+    ) : (
+      <>
+        <div className="analytics-main">
+          <div className="analytics-earned-card">
+            <span className="analytics-earned-label">Заработано</span>
+            <span className="analytics-earned-value">{analytics[analyticsPeriod].earned} ₽</span>
+            <span className="analytics-earned-sub">{analytics[analyticsPeriod].shifts_count} смен · {analytics[analyticsPeriod].hours} ч</span>
+          </div>
+        </div>
+
+        {analyticsPeriod === 'month' && (
+          <div className="analytics-row">
+            <div className="analytics-card">
+              <span className="analytics-card-label">Прогноз</span>
+              <span className="analytics-card-value">{analytics.forecast} ₽</span>
+              <span className="analytics-card-sub">до конца месяца</span>
             </div>
-            <div className="profile-info">
-              <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{employee.hourly_rate} ₽/час</span></div>
-              <div className="info-row"><span className="info-label">Смен за месяц</span><span className="info-value">{stats?.shifts_count || 0}</span></div>
-              <div className="info-row"><span className="info-label">Часов за месяц</span><span className="info-value">{stats?.total_hours ? parseFloat(stats.total_hours).toFixed(1) : '0'} ч</span></div>
-              <div className="info-row"><span className="info-label">Заработано за месяц</span><span className="info-value">{stats?.total_earned ? parseFloat(stats.total_earned).toFixed(2) : '0.00'} ₽</span></div>
-            </div>
-            <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId); }}>
-              📋 Учёт смен
-            </button>
+            {analytics.attendance_rate !== null && (
+              <div className="analytics-card">
+                <span className="analytics-card-label">Посещаемость</span>
+                <span className={`analytics-card-value ${analytics.attendance_rate >= 80 ? 'green' : analytics.attendance_rate >= 50 ? 'yellow' : 'red'}`}>
+                  {analytics.attendance_rate}%
+                </span>
+                <span className="analytics-card-sub">{analytics.worked_count} из {analytics.planned_count} смен</span>
+              </div>
+            )}
           </div>
         )}
+      </>
+    )}
+
+    <button className="btn-secondary" onClick={() => { setSubScreen('history'); fetchPastShifts(userId); }}>
+      📋 Учёт смен
+    </button>
+  </div>
+)}
 
         {/* ИСТОРИЯ СМЕН */}
         {screen === 'profile' && subScreen === 'history' && (
@@ -878,8 +926,7 @@ const formatTime = (dateStr) => {
           <span className="nav-icon">📅</span>
           <span className="nav-label">График</span>
         </button>
-        <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`} onClick={() => navigateTo('profile')}>
-          <span className="nav-icon">👤</span>
+        <button className={`nav-item ${screen === 'profile' ? 'active' : ''}`} onClick={() => { navigateTo('profile'); fetchAnalytics(userId); }}>
           <span className="nav-label">Профиль</span>
         </button>
         <button className={`nav-item ${screen === 'support' ? 'active' : ''}`} onClick={() => navigateTo('support')}>
