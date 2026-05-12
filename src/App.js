@@ -3,7 +3,7 @@ import WebApp from '@twa-dev/sdk';
 import './App.css';
 
 const API = 'https://hr-bot-production-eedd.up.railway.app';
-const ADMIN_ID = 7639287231;8668336373;
+const ADMIN_ID = 7639287231;
 
 function ScheduleCalendar({ shifts }) {
   const today = new Date();
