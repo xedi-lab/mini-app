@@ -1,3 +1,4 @@
+import Picker from 'react-mobile-picker';
 import React, { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
@@ -174,90 +175,45 @@ function DatePicker({ value, onChange }) {
 }
 
 function TimePicker({ value, onChange, label }) {
-  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
-
   const [selectedHour, selectedMinute] = value ? value.split(':') : ['09', '00'];
 
-  const hourRef = React.useRef(null);
-  const minRef = React.useRef(null);
+  const hours = Object.fromEntries(
+    Array.from({ length: 24 }, (_, i) => [String(i).padStart(2, '0'), String(i).padStart(2, '0')])
+  );
+  const minutes = Object.fromEntries(
+    Array.from({ length: 60 }, (_, i) => [String(i).padStart(2, '0'), String(i).padStart(2, '0')])
+  );
 
-  const ITEM_HEIGHT = 40;
+  const pickerValue = { hour: selectedHour, minute: selectedMinute };
 
-  React.useEffect(() => {
-    if (hourRef.current) {
-      hourRef.current.scrollTop = parseInt(selectedHour) * ITEM_HEIGHT;
-    }
-    if (minRef.current) {
-      minRef.current.scrollTop = parseInt(selectedMinute) * ITEM_HEIGHT;
-    }
-  }, [selectedHour, selectedMinute]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleHourScroll = (e) => {
-    const idx = Math.round(e.target.scrollTop / ITEM_HEIGHT);
-    const h = String(Math.min(23, Math.max(0, idx))).padStart(2, '0');
-    if (h !== selectedHour) onChange(`${h}:${selectedMinute}`);
-  };
-
-  const handleMinScroll = (e) => {
-    const idx = Math.round(e.target.scrollTop / ITEM_HEIGHT);
-    const m = String(Math.min(59, Math.max(0, idx))).padStart(2, '0');
-    if (m !== selectedMinute) onChange(`${selectedHour}:${m}`);
+  const handleChange = (newValue) => {
+    onChange(`${newValue.hour}:${newValue.minute}`);
   };
 
   return (
     <div className="time-picker-wrap">
       <span className="time-picker-label">{label}</span>
       <div className="time-picker-drum">
-        <div className="time-picker-highlight" />
-
-        {/* ЧАСЫ */}
-        <div
-          className="time-picker-scroll-col"
-          ref={hourRef}
-          onScrollEnd={handleHourScroll}
-          onScroll={handleHourScroll}
-        >
-          <div className="time-picker-padding" />
-          {hours.map(h => (
-            <div
-              key={h}
-              className={`time-picker-item ${h === selectedHour ? 'active' : ''}`}
-              onClick={() => {
-                onChange(`${h}:${selectedMinute}`);
-                if (hourRef.current) hourRef.current.scrollTop = parseInt(h) * ITEM_HEIGHT;
-              }}
-            >
-              {h}
-            </div>
-          ))}
-          <div className="time-picker-padding" />
-        </div>
-
-        <span className="time-picker-sep">:</span>
-
-        {/* МИНУТЫ */}
-        <div
-          className="time-picker-scroll-col"
-          ref={minRef}
-          onScrollEnd={handleMinScroll}
-          onScroll={handleMinScroll}
-        >
-          <div className="time-picker-padding" />
-          {minutes.map(m => (
-            <div
-              key={m}
-              className={`time-picker-item ${m === selectedMinute ? 'active' : ''}`}
-              onClick={() => {
-                onChange(`${selectedHour}:${m}`);
-                if (minRef.current) minRef.current.scrollTop = parseInt(m) * ITEM_HEIGHT;
-              }}
-            >
-              {m}
-            </div>
-          ))}
-          <div className="time-picker-padding" />
-        </div>
+        <Picker value={pickerValue} onChange={handleChange} wheelMode="natural" height={90} itemHeight={30}>
+          <Picker.Column name="hour">
+            {Object.keys(hours).map(h => (
+              <Picker.Item key={h} value={h}>
+                {({ selected }) => (
+                  <div className={`drum-item ${selected ? 'drum-item--selected' : ''}`}>{h}</div>
+                )}
+              </Picker.Item>
+            ))}
+          </Picker.Column>
+          <Picker.Column name="minute">
+            {Object.keys(minutes).map(m => (
+              <Picker.Item key={m} value={m}>
+                {({ selected }) => (
+                  <div className={`drum-item ${selected ? 'drum-item--selected' : ''}`}>{m}</div>
+                )}
+              </Picker.Item>
+            ))}
+          </Picker.Column>
+        </Picker>
       </div>
     </div>
   );
