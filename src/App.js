@@ -11,14 +11,19 @@ function ScheduleCalendar({ shifts }) {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+  const startOfGrid = new Date(monthStart);
+  const dayOfWeek = monthStart.getDay();
+  startOfGrid.setDate(monthStart.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
 
   const weeksToShow = showMore ? 6 : 2;
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1);
-
   const days = Array.from({ length: weeksToShow * 7 }, (_, i) => {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
+    const d = new Date(startOfGrid);
+    d.setDate(startOfGrid.getDate() + i);
     return d;
   });
 
@@ -49,18 +54,28 @@ function ScheduleCalendar({ shifts }) {
     weeks.push(days.slice(i, i + 7));
   }
 
+  const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+
   return (
     <div className="schedule-calendar">
+
+      {/* ЗАГОЛОВОК */}
       <div className="calendar-header-row">
-        <span className="calendar-month-label">{months[today.getMonth()]} {today.getFullYear()}</span>
+        <button className="calendar-nav-btn" onClick={prevMonth}>‹</button>
+        <span className="calendar-month-label">{months[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
+        <button className="calendar-nav-btn" onClick={nextMonth}>›</button>
       </div>
+
+      {/* СЕТКА */}
       <div className="calendar-grid-wrap">
         <div className="calendar-weekdays">
           {dayNames.map(d => (
             <span key={d} className="calendar-weekday">{d}</span>
           ))}
         </div>
-        <div className="calendar-grid">
+
+        <div className={`calendar-grid ${showMore ? 'expanded' : ''}`}>
           {weeks.map((week, wi) => (
             <div key={wi} className="calendar-week">
               {week.map(d => {
@@ -68,11 +83,12 @@ function ScheduleCalendar({ shifts }) {
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDate;
                 const hasS = hasShift(dateStr);
+                const isCurrentMonth = d.getMonth() === currentMonth.getMonth();
                 const isPast = d < today && !isToday;
                 return (
                   <button
                     key={dateStr}
-                    className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasS ? 'has-shift' : ''} ${isPast ? 'past' : ''}`}
+                    className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasS ? 'has-shift' : ''} ${isPast ? 'past' : ''} ${!isCurrentMonth ? 'other-month' : ''}`}
                     onClick={() => handleDayClick(dateStr)}
                   >
                     <span className="calendar-cell-num">{d.getDate()}</span>
@@ -84,9 +100,14 @@ function ScheduleCalendar({ shifts }) {
           ))}
         </div>
       </div>
+
+      {/* КНОПКА ПОКАЗАТЬ ЕЩЁ */}
       <button className="calendar-show-more" onClick={() => setShowMore(!showMore)}>
-        {showMore ? 'Свернуть ↑' : 'Показать ещё ↓'}
+        <span className={`calendar-show-more-icon ${showMore ? 'rotated' : ''}`}>›</span>
+        {showMore ? 'Свернуть' : 'Показать ещё'}
       </button>
+
+      {/* BOTTOM SHEET */}
       {sheetVisible && (
         <>
           <div className="sheet-overlay" onClick={() => setSheetVisible(false)} />
