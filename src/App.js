@@ -298,10 +298,11 @@ function App() {
     fetchAdminEmpData(selectedEmployee);
   };
 
-  const formatTime = (dateStr) => {
-    const d = new Date(dateStr);
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-  };
+ const formatTime = (dateStr) => {
+  const d = new Date(dateStr);
+  const nsk = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+  return `${String(nsk.getUTCHours()).padStart(2, '0')}:${String(nsk.getUTCMinutes()).padStart(2, '0')}`;
+};
 
   if (loading) return (
     <div className="loader-screen"><div className="loader"></div></div>
