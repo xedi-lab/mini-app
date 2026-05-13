@@ -1908,6 +1908,34 @@ body {
   color: var(--blue);
 }
 
+/* SHIFTS MONTH GROUP */
+.shifts-month-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shifts-month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+  margin-top: 8px;
+}
+
+.shifts-month-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.shifts-month-total {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+}
+
 .skeleton-line--short { width: 40%; }
 .skeleton-line--medium { width: 65%; }
 .skeleton-line--full { width: 100%; }

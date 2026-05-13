@@ -799,22 +799,45 @@ const fetchWorkedShifts = async (id) => {
     <span className="empty-title">Смен пока нет</span>
     <span className="empty-subtitle">История появится после первой смены</span>
   </div>
-) : pastShifts.map(shift => {
-              const start = new Date(shift.start_time);
-              const end = new Date(shift.end_time);
-              return (
-                <div key={shift.id} className="shift-item">
-                  <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
-                  <div className="shift-info">
-                    <span className="shift-time">
-                      {String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}
-                    </span>
-                    <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
-                  </div>
-                  <div className="shift-earned">{shift.earned}₽</div>
-                </div>
-              );
-            })}
+) : (() => {
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const grouped = {};
+  pastShifts.forEach(shift => {
+    const d = new Date(shift.start_time);
+    const month = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`;
+    if (!grouped[month]) grouped[month] = [];
+    grouped[month].push(shift);
+  });
+  return Object.entries(grouped).map(([monthKey, monthShifts]) => {
+    const [year, month] = monthKey.split('-');
+    const monthEarned = monthShifts.reduce((sum, s) => sum + parseFloat(s.earned || 0), 0);
+    const monthHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours_worked || 0), 0);
+    return (
+      <div key={monthKey} className="shifts-month-group">
+        <div className="shifts-month-header">
+          <span className="shifts-month-label">{months[parseInt(month)-1]} {year}</span>
+          <span className="shifts-month-total">{monthHours.toFixed(1)}ч · {monthEarned.toFixed(0)}₽</span>
+        </div>
+        {monthShifts.map(shift => {
+          const start = new Date(shift.start_time);
+          const end = new Date(shift.end_time);
+          return (
+            <div key={shift.id} className="shift-item">
+              <div className="shift-date">{start.getDate()}.{String(start.getMonth()+1).padStart(2,'0')}</div>
+              <div className="shift-info">
+                <span className="shift-time">
+                  {String(start.getUTCHours()).padStart(2,'0')}:{String(start.getUTCMinutes()).padStart(2,'0')} — {String(end.getUTCHours()).padStart(2,'0')}:{String(end.getUTCMinutes()).padStart(2,'0')}
+                </span>
+                <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
+              </div>
+              <div className="shift-earned">{shift.earned}₽</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  });
+})()}
           </div>
         )}
 
