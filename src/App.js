@@ -6,9 +6,9 @@ import './App.css';
 const API = 'https://hr-bot-production-eedd.up.railway.app';
 const ADMIN_ID = 7639287231;
 
-function ScheduleCalendar({ shifts }) {
+function ScheduleCalendar({ shifts, workedShifts = [] }) {
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
   const [selectedDate, setSelectedDate] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -30,17 +30,17 @@ function ScheduleCalendar({ shifts }) {
   const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   const months = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
-  const hasShift = (dateStr) => shifts.some(s => s.planned_date === dateStr);
-  const shiftsForDate = (dateStr) => shifts.filter(s => s.planned_date === dateStr);
+  const hasPlanned = (dateStr) => shifts.some(s => s.planned_date === dateStr);
+  const hasWorked = (dateStr) => workedShifts.some(s => s.date === dateStr);
+  const getWorked = (dateStr) => workedShifts.find(s => s.date === dateStr);
+  const getPlanned = (dateStr) => shifts.find(s => s.planned_date === dateStr);
 
   const handleDayClick = (dateStr) => {
-    if (hasShift(dateStr)) {
+    if (hasPlanned(dateStr) || hasWorked(dateStr)) {
       setSelectedDate(dateStr);
       setSheetVisible(true);
     }
   };
-
-  const selectedShifts = selectedDate ? shiftsForDate(selectedDate) : [];
 
   const formatSheetDate = (dateStr) => {
     if (!dateStr) return '';
@@ -57,17 +57,33 @@ function ScheduleCalendar({ shifts }) {
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
 
+  const selectedWorked = selectedDate ? getWorked(selectedDate) : null;
+  const selectedPlanned = selectedDate ? getPlanned(selectedDate) : null;
+
   return (
     <div className="schedule-calendar">
-
-      {/* ЗАГОЛОВОК */}
       <div className="calendar-header-row">
         <button className="calendar-nav-btn" onClick={prevMonth}>‹</button>
         <span className="calendar-month-label">{months[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
         <button className="calendar-nav-btn" onClick={nextMonth}>›</button>
       </div>
 
-      {/* СЕТКА */}
+      {/* ЛЕГЕНДА */}
+      <div className="calendar-legend">
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot planned"></span>
+          <span>Плановая</span>
+        </div>
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot worked"></span>
+          <span>Отработана</span>
+        </div>
+        <div className="calendar-legend-item">
+          <span className="calendar-legend-dot both"></span>
+          <span>Выполнена</span>
+        </div>
+      </div>
+
       <div className="calendar-grid-wrap">
         <div className="calendar-weekdays">
           {dayNames.map(d => (
@@ -82,17 +98,26 @@ function ScheduleCalendar({ shifts }) {
                 const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDate;
-                const hasS = hasShift(dateStr);
+                const planned = hasPlanned(dateStr);
+                const worked = hasWorked(dateStr);
                 const isCurrentMonth = d.getMonth() === currentMonth.getMonth();
                 const isPast = d < today && !isToday;
+
+                let cellType = '';
+                if (planned && worked) cellType = 'both';
+                else if (worked) cellType = 'worked';
+                else if (planned) cellType = 'planned';
+
                 return (
                   <button
                     key={dateStr}
-                    className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${hasS ? 'has-shift' : ''} ${isPast ? 'past' : ''} ${!isCurrentMonth ? 'other-month' : ''}`}
+                    className={`calendar-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${cellType} ${isPast ? 'past' : ''} ${!isCurrentMonth ? 'other-month' : ''}`}
                     onClick={() => handleDayClick(dateStr)}
                   >
                     <span className="calendar-cell-num">{d.getDate()}</span>
-                    {hasS && <span className="calendar-cell-dot"></span>}
+                    {cellType && !isToday && !isSelected && (
+                      <span className={`calendar-cell-dot ${cellType}`}></span>
+                    )}
                   </button>
                 );
               })}
@@ -101,13 +126,11 @@ function ScheduleCalendar({ shifts }) {
         </div>
       </div>
 
-      {/* КНОПКА ПОКАЗАТЬ ЕЩЁ */}
       <button className="calendar-show-more" onClick={() => setShowMore(!showMore)}>
         <span className={`calendar-show-more-icon ${showMore ? 'rotated' : ''}`}>›</span>
         {showMore ? 'Свернуть' : 'Показать ещё'}
       </button>
 
-      {/* BOTTOM SHEET */}
       {sheetVisible && (
         <>
           <div className="sheet-overlay" onClick={() => setSheetVisible(false)} />
@@ -117,20 +140,41 @@ function ScheduleCalendar({ shifts }) {
               <button className="sheet-close" onClick={() => setSheetVisible(false)}>✕</button>
             </div>
             <div className="sheet-date">{formatSheetDate(selectedDate)}</div>
-            {selectedShifts.map(shift => (
-              <div key={shift.id} className="sheet-shift-card">
-                <div className="sheet-shift-time">{shift.shift_start} — {shift.shift_end}</div>
-                {shift.note && <div className="sheet-shift-note">{shift.note}</div>}
+
+            {selectedWorked && (
+              <div className="sheet-shift-card sheet-shift-card--worked">
+                <div className="sheet-shift-status">✅ Отработана</div>
+                <div className="sheet-shift-time">{selectedWorked.start_time} — {selectedWorked.end_time}</div>
+                <div className="sheet-shift-row">
+                  <span className="sheet-shift-hours">{selectedWorked.hours_worked}ч</span>
+                  <span className="sheet-shift-earned">+{selectedWorked.earned} ₽</span>
+                </div>
+              </div>
+            )}
+
+            {selectedPlanned && !selectedWorked && (
+              <div className="sheet-shift-card sheet-shift-card--planned">
+                <div className="sheet-shift-status">📅 Плановая</div>
+                <div className="sheet-shift-time">{selectedPlanned.shift_start} — {selectedPlanned.shift_end}</div>
+                {selectedPlanned.note && <div className="sheet-shift-note">{selectedPlanned.note}</div>}
                 <div className="sheet-shift-duration">
                   {(() => {
-                    const [sh, sm] = shift.shift_start.split(':').map(Number);
-                    const [eh, em] = shift.shift_end.split(':').map(Number);
+                    const [sh, sm] = selectedPlanned.shift_start.split(':').map(Number);
+                    const [eh, em] = selectedPlanned.shift_end.split(':').map(Number);
                     const dur = (eh * 60 + em) - (sh * 60 + sm);
                     return `${Math.floor(dur / 60)}ч${dur % 60 > 0 ? ` ${dur % 60}м` : ''}`;
                   })()}
                 </div>
               </div>
-            ))}
+            )}
+
+            {selectedPlanned && selectedWorked && (
+              <div className="sheet-shift-card sheet-shift-card--planned">
+                <div className="sheet-shift-status">📅 План</div>
+                <div className="sheet-shift-time">{selectedPlanned.shift_start} — {selectedPlanned.shift_end}</div>
+                {selectedPlanned.note && <div className="sheet-shift-note">{selectedPlanned.note}</div>}
+              </div>
+            )}
           </div>
         </>
       )}
@@ -193,6 +237,7 @@ function App() {
   const [employee, setEmployee] = useState(null);
   const [stats, setStats] = useState(null);
   const [plannedShifts, setPlannedShifts] = useState([]);
+  const [workedShifts, setWorkedShifts] = useState([]);
   const [pastShifts, setPastShifts] = useState([]);
   const [screen, setScreen] = useState('home');
   const [subScreen, setSubScreen] = useState(null);
@@ -294,6 +339,7 @@ function App() {
       setEmployee(data);
       fetchStats(id);
       fetchPlanned(id);
+      fetchWorkedShifts(id);
       setLoading(false);
     } catch {
       setEmployee(null);
@@ -343,6 +389,14 @@ function App() {
       setPlannedShifts(data);
     } catch {}
   };
+
+const fetchWorkedShifts = async (id) => {
+  try {
+    const res = await fetch(`${API}/employee/${id}/shifts/calendar`);
+    const data = await res.json();
+    setWorkedShifts(data);
+  } catch {}
+};
 
   const fetchPastShifts = async (id) => {
     try {
@@ -661,11 +715,11 @@ function App() {
 
         {/* ГРАФИК */}
         {screen === 'schedule' && (
-          <div className="screen">
-            <h2 className="screen-title">График</h2>
-            <ScheduleCalendar shifts={plannedShifts} />
-          </div>
-        )}
+  <div className="screen">
+    <h2 className="screen-title">График</h2>
+    <ScheduleCalendar shifts={plannedShifts} workedShifts={workedShifts} />
+  </div>
+)}
 
         {/* ПРОФИЛЬ */}
         {screen === 'profile' && employee && !subScreen && (

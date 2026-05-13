@@ -1823,6 +1823,81 @@ body {
   border-color: var(--accent);
 }
 
+/* CALENDAR LEGEND */
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  padding: 0 2px;
+}
+
+.calendar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.calendar-legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calendar-legend-dot.planned { background: var(--green); }
+.calendar-legend-dot.worked { background: var(--blue); }
+.calendar-legend-dot.both { background: var(--green-text); }
+
+/* CALENDAR CELL TYPES */
+.calendar-cell.planned { background: var(--green-soft); }
+.calendar-cell.planned .calendar-cell-num { color: var(--green-text); font-weight: 600; }
+
+.calendar-cell.worked { background: rgba(0,122,255,0.08); }
+.calendar-cell.worked .calendar-cell-num { color: var(--blue); font-weight: 600; }
+
+.calendar-cell.both { background: var(--green-soft); }
+.calendar-cell.both .calendar-cell-num { color: var(--green-text); font-weight: 700; }
+
+.calendar-cell-dot.planned { background: var(--green); }
+.calendar-cell-dot.worked { background: var(--blue); }
+.calendar-cell-dot.both { background: var(--green-text); }
+
+/* SHEET SHIFT CARD TYPES */
+.sheet-shift-card--worked {
+  border-color: rgba(0,122,255,0.2);
+  background: rgba(0,122,255,0.04);
+}
+
+.sheet-shift-card--planned {
+  border-color: rgba(52,199,89,0.2);
+  background: var(--green-soft);
+}
+
+.sheet-shift-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.sheet-shift-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.sheet-shift-hours {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.sheet-shift-earned {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--blue);
+}
+
 .skeleton-line--short { width: 40%; }
 .skeleton-line--medium { width: 65%; }
 .skeleton-line--full { width: 100%; }
