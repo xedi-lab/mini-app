@@ -324,7 +324,13 @@ function App() {
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
       const earned = parseFloat(((totalSeconds / 3600) * employee?.hourly_rate).toFixed(2));
-      setElapsed({ hours, minutes, seconds, earned });
+      const nowNSKDate = new Date(nowNSK);
+      const endOfDay = new Date(nowNSK);
+      endOfDay.setUTCHours(21, 0, 0, 0);
+      const remainMs = Math.max(0, endOfDay.getTime() - nowNSKDate.getTime());
+      const remainHours = Math.floor(remainMs / 3600000);
+      const remainMins = Math.floor((remainMs % 3600000) / 60000);
+      setElapsed({ hours, minutes, seconds, earned, remainHours, remainMins });
     };
     tick();
     const interval = setInterval(tick, 1000);
@@ -667,6 +673,7 @@ const fetchWorkedShifts = async (id) => {
                     {String(elapsed.hours).padStart(2, '0')}:{String(elapsed.minutes).padStart(2, '0')}:{String(elapsed.seconds).padStart(2, '0')}
                   </div>
                   <div className="hero-timer-earned">+ {elapsed.earned} ₽</div>
+                  <div className="hero-timer-remain">до конца смены {elapsed.remainHours}ч {elapsed.remainMins}м</div>
                 </div>
               )}
             </div>

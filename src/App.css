@@ -1363,6 +1363,12 @@ body {
   font-weight: 600;
 }
 
+.hero-timer-remain {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
 /* ACTION BUTTON */
 .action-btn {
   width: 100%;
