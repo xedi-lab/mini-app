@@ -925,6 +925,12 @@ body {
 .staff-name { font-size: 0.92rem; font-weight: 600; color: var(--text-primary); }
 .staff-workplace { font-size: 0.75rem; color: var(--text-secondary); }
 
+.staff-month-stats {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  margin-top: 1px;
+}
+
 .staff-right { display: flex; align-items: center; }
 
 .staff-status {

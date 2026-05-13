@@ -969,15 +969,16 @@ const fetchWorkedShifts = async (id) => {
 ) :
                   adminStats.map(emp => (
                     <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-                      <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
-                      <div className="staff-info">
-                        <span className="staff-name">{emp.first_name} {emp.last_name}</span>
-                        <span className="staff-workplace">{emp.workplace}</span>
-                      </div>
-                      <div className="staff-right">
-                        <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>{emp.on_shift ? 'На смене' : 'Не работает'}</span>
-                      </div>
-                    </div>
+  <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
+  <div className="staff-info">
+    <span className="staff-name">{emp.first_name} {emp.last_name}</span>
+    <span className="staff-workplace">{emp.workplace}</span>
+    <span className="staff-month-stats">{parseFloat(emp.total_hours || 0).toFixed(1)}ч · {parseFloat(emp.total_earned || 0).toFixed(0)}₽ за месяц</span>
+  </div>
+  <div className="staff-right">
+    <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>{emp.on_shift ? 'На смене' : 'Не работает'}</span>
+  </div>
+</div>
                   ))
                 }
               </div>
