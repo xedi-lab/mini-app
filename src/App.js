@@ -977,6 +977,16 @@ const fetchWorkedShifts = async (id) => {
                   <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? '🟢 На смене' : '⚪ Не работает'}</span></div>
                 </div>
                 <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
+                {selectedEmployee.on_shift && (
+  <button className="btn-secondary btn-secondary--danger" onClick={async () => {
+    await fetch(`${API}/admin/reset-shift/${selectedEmployee.telegram_id}`);
+    showMessage('✅ Смена сброшена');
+    fetchAdminStats();
+    setSelectedEmployee({...selectedEmployee, on_shift: false});
+  }}>
+    🔄 Сбросить смену
+  </button>
+)}
                 <button className="btn-secondary" onClick={() => setSubScreen('emp-history')}>📋 История смен</button>
                 <button className="btn-secondary" onClick={() => setSubScreen('emp-planned')}>📅 Плановые смены</button>
               </>

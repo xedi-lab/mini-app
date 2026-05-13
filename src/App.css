@@ -550,6 +550,10 @@ body {
 }
 
 .btn-secondary::after { content: '→'; color: var(--text-tertiary); }
+.btn-secondary--danger {
+  color: var(--red-text);
+  border-color: rgba(255,59,48,0.2);
+}
 .btn-secondary:active { background: var(--bg); }
 
 /* SCREEN HEADER */
