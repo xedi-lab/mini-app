@@ -4,7 +4,7 @@ import WebApp from '@twa-dev/sdk';
 import './App.css';
 
 const API = 'https://hr-bot-production-eedd.up.railway.app';
-const ADMIN_ID = 7639287231;
+const ADMIN_IDS = [7639287231, 961116530];
 
 function ScheduleCalendar({ shifts, workedShifts = [] }) {
   const today = new Date();
@@ -345,7 +345,7 @@ function App() {
     setDebugInfo(debug);
     if (detectedId) {
       setUserId(detectedId);
-      setIsAdmin(detectedId === ADMIN_ID);
+      setIsAdmin(ADMIN_IDS.includes(detectedId));
       fetchEmployee(detectedId);
     } else {
       debug += `FINAL: Could not detect user ID\n`;
@@ -390,7 +390,7 @@ function App() {
       setLoading(false);
     } catch {
       setEmployee(null);
-      if (id !== ADMIN_ID) await checkRegStatus(id);
+      if (!ADMIN_IDS.includes(id)) await checkRegStatus(id);
       setLoading(false);
     }
   };
