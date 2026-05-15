@@ -853,13 +853,31 @@ body {
   width: 20px; text-align: center;
 }
 
+.faq-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+
+.faq-item--open .faq-body-wrap {
+  grid-template-rows: 1fr;
+}
+
 .faq-body {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+  overflow: hidden;
   font-size: 0.84rem;
   color: var(--text-secondary);
   line-height: 1.6;
+  padding-top: 0;
+  border-top: 0px solid var(--border);
+  transition: padding-top 0.28s cubic-bezier(0.4,0,0.2,1),
+              border-top-width 0.28s;
+}
+
+.faq-item--open .faq-body {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
 }
 
 /* DASHBOARD */
