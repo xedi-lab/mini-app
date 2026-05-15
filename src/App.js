@@ -548,10 +548,11 @@ const fetchWorkedShifts = async (id) => {
   // Следующая плановая смена
   const getNextShift = () => {
     const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
+    const pad = n => String(n).padStart(2, '0');
+    const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
     const upcoming = plannedShifts
       .filter(s => s.planned_date >= todayStr)
       .sort((a, b) => a.planned_date.localeCompare(b.planned_date));
