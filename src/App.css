@@ -632,7 +632,7 @@ body {
   border-radius: var(--r-md);
   padding: 12px 14px;
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-size: 16px;
   outline: none; width: 100%;
   -webkit-appearance: none; appearance: none;
   transition: border-color 0.15s;
@@ -1921,7 +1921,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 14px 16px;
-  font-size: 1.3rem;
+  font-size: max(16px, 1.3rem);
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
