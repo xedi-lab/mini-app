@@ -1023,7 +1023,7 @@ const fetchWorkedShifts = async (id) => {
             )}
 
             {adminTab === 'dashboard' && (
-              <div className="dashboard-screen">
+              <div key="dashboard" className="dashboard-screen">
                 {!adminDashboard ? (
   <div className="skeleton-card">
     <div className="skeleton skeleton-line skeleton-line--short" />
@@ -1068,7 +1068,7 @@ const fetchWorkedShifts = async (id) => {
             )}
 
             {adminTab === 'activity' && (
-              <div className="dashboard-screen">
+              <div key="activity" className="dashboard-screen">
                 {!adminDashboard ? (
   <div className="skeleton-card">
     <div className="skeleton skeleton-line skeleton-line--short" />
@@ -1117,7 +1117,7 @@ const fetchWorkedShifts = async (id) => {
             )}
 
             {adminTab === 'staff' && (
-              <div className="staff-list">
+              <div key="staff" className="staff-list">
                 {adminStats.length === 0 ? (
   <div className="empty">
     <div className="empty-icon">👥</div>
@@ -1143,7 +1143,7 @@ const fetchWorkedShifts = async (id) => {
             )}
 
             {adminTab === 'payroll' && (
-              <div className="payroll-screen">
+              <div key="payroll" className="payroll-screen">
                 <div className="payroll-month-nav">
                   <button className="calendar-nav-btn" onClick={() => {
                     const d = new Date(payrollMonth + '-01');
@@ -1175,7 +1175,7 @@ const fetchWorkedShifts = async (id) => {
                     <span className="empty-subtitle">Смены за выбранный месяц не найдены. Рады, что Вы с нами — статистика появится здесь автоматически!</span>
                   </div>
                 ) : payrollData.employees && (
-                  <>
+                  <React.Fragment key={payrollMonth}>
                     {payrollData.employees.map((emp, i) => (
                       <div key={i} className="payroll-emp-card">
                         <div className="payroll-emp-name">{emp.first_name} {emp.last_name}</div>
@@ -1210,13 +1210,13 @@ const fetchWorkedShifts = async (id) => {
                     <button className="action-btn action-btn--open" onClick={() => window.open(`${API}/admin/export/payroll?month=${payrollMonth}`, '_blank')}>
                       📥 Скачать Excel
                     </button>
-                  </>
+                  </React.Fragment>
                 )}
               </div>
             )}
 
             {adminTab === 'faq' && (
-              <div className="faq-list">
+              <div key="faq" className="faq-list">
                 {[
                   {
                     icon: '👤',
@@ -1529,24 +1529,50 @@ const fetchWorkedShifts = async (id) => {
       </button>
     </div>
 
-    <div className="shifts-list">
-      {adminEmpPlanned.length === 0 ? (
-        <div className="empty">
-          <div className="empty-icon">📅</div>
-          <span className="empty-title">Плановых смен нет</span>
-          <span className="empty-subtitle">Добавьте смену выше</span>
-        </div>
-      ) : adminEmpPlanned.map(shift => (
-         <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
-          <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-          <div className="shift-info">
-            <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-            {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+    {(() => {
+      const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+      const upcoming = adminEmpPlanned.filter(s => s.planned_date >= todayStr);
+      const past = adminEmpPlanned.filter(s => s.planned_date < todayStr);
+      return (
+        <>
+          <div className="shifts-list">
+            {upcoming.length === 0 ? (
+              <div className="empty">
+                <div className="empty-icon">📅</div>
+                <span className="empty-title">Предстоящих смен нет</span>
+                <span className="empty-subtitle">Добавьте смену выше</span>
+              </div>
+            ) : upcoming.map(shift => (
+              <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
+                <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+                <div className="shift-info">
+                  <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+                  {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+                </div>
+                <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+              </div>
+            ))}
           </div>
-          <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
-        </div>
-      ))}
-    </div>
+          {past.length > 0 && (
+            <details className="past-shifts-section">
+              <summary className="past-shifts-toggle">Прошедшие ({past.length})</summary>
+              <div className="shifts-list" style={{marginTop: 8}}>
+                {past.map(shift => (
+                  <div key={shift.id} id={`shift-${shift.id}`} className="shift-item shift-item--past">
+                    <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+                    <div className="shift-info">
+                      <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+                      {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+                    </div>
+                    <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </>
+      );
+    })()}
   </div>
 )}
                 
