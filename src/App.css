@@ -638,6 +638,7 @@ body {
   transition: border-color 0.15s;
 }
 
+.form-input { caret-color: var(--text-primary); }
 .form-input:focus { border-color: var(--accent); }
 
 .form-row {
@@ -2254,6 +2255,103 @@ body {
 }
 
 .analytics-card-sub { font-size: 0.68rem; color: var(--text-tertiary); }
+
+/* ============================================
+   PAST SHIFTS SECTION
+   ============================================ */
+
+.past-shifts-section {
+  margin-top: 4px;
+}
+
+.past-shifts-toggle {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 2px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.past-shifts-toggle::-webkit-details-marker { display: none; }
+.past-shifts-toggle::before { content: '›'; font-size: 1rem; transition: transform 0.2s var(--ease); display: inline-block; }
+details[open] .past-shifts-toggle::before { transform: rotate(90deg); }
+.past-shifts-toggle:hover { color: var(--text-secondary); }
+
+.shift-item--past { opacity: 0.5; }
+
+/* ============================================
+   GLOBAL ANIMATION POLISH
+   ============================================ */
+
+.dashboard-screen,
+.staff-list,
+.payroll-screen,
+.faq-list,
+.admin-home {
+  animation: screenIn 0.28s var(--ease) both;
+}
+
+.empty {
+  animation: fadeIn 0.35s var(--ease) both;
+}
+
+.skeleton-card {
+  animation: fadeIn 0.2s var(--ease) both;
+}
+
+.payroll-emp-card {
+  animation: cardIn 0.3s var(--ease) both;
+}
+.payroll-screen .payroll-emp-card:nth-child(2) { animation-delay: 0.05s; }
+.payroll-screen .payroll-emp-card:nth-child(3) { animation-delay: 0.10s; }
+.payroll-screen .payroll-emp-card:nth-child(4) { animation-delay: 0.15s; }
+.payroll-screen .payroll-emp-card:nth-child(5) { animation-delay: 0.20s; }
+.payroll-screen .payroll-emp-card:nth-child(6) { animation-delay: 0.25s; }
+
+.payroll-grand-total {
+  animation: cardIn 0.3s var(--ease) 0.28s both;
+}
+
+.adj-item { animation: cardIn 0.25s var(--ease) both; }
+.adj-item:nth-child(1) { animation-delay: 0.04s; }
+.adj-item:nth-child(2) { animation-delay: 0.08s; }
+.adj-item:nth-child(3) { animation-delay: 0.12s; }
+.adj-item:nth-child(4) { animation-delay: 0.16s; }
+
+.no-show-card { animation: cardIn 0.25s var(--ease) both; }
+
+.faq-list .faq-item:nth-child(1)  { animation-delay: 0.03s; }
+.faq-list .faq-item:nth-child(2)  { animation-delay: 0.06s; }
+.faq-list .faq-item:nth-child(3)  { animation-delay: 0.09s; }
+.faq-list .faq-item:nth-child(4)  { animation-delay: 0.12s; }
+.faq-list .faq-item:nth-child(5)  { animation-delay: 0.15s; }
+.faq-list .faq-item:nth-child(6)  { animation-delay: 0.18s; }
+.faq-list .faq-item:nth-child(7)  { animation-delay: 0.21s; }
+.faq-list .faq-item:nth-child(8)  { animation-delay: 0.24s; }
+.faq-list .faq-item:nth-child(9)  { animation-delay: 0.27s; }
+.faq-list .faq-item:nth-child(10) { animation-delay: 0.30s; }
+
+.next-shift-card { animation: cardIn 0.3s var(--ease) 0.1s both; }
+.hero-card       { animation: cardIn 0.35s var(--ease) both; }
+.info-card       { animation: cardIn 0.3s var(--ease) 0.15s both; }
+.support-card    { animation: cardIn 0.3s var(--ease) both; }
+.shift-form-card { animation: cardIn 0.28s var(--ease) both; }
+.adj-form-card   { animation: cardIn 0.25s var(--ease) both; }
+
+.stats-row .stat-card:nth-child(1) { animation-delay: 0.06s; }
+.stats-row .stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stats-row .stat-card:nth-child(3) { animation-delay: 0.18s; }
+
+.analytics-earned-card { animation: cardIn 0.28s var(--ease) 0.04s both; }
+
+.sheet-overlay   { animation: fadeIn 0.22s ease both; }
+.confirm-overlay { animation: fadeIn 0.18s ease both; }
 
 /* ============================================
    ADMIN HOME MENU
