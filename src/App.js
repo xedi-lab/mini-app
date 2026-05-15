@@ -1393,6 +1393,31 @@ const fetchWorkedShifts = async (id) => {
                 <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{selectedEmployee.hourly_rate} ₽/час</span></div>
                 <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? (selectedEmployee.open_shift?.confirmed_at ? '🟢 На смене' : '🟡 Ожидает подтверждения') : '⚪ Не работает'}</span></div>
               </div>
+              {(() => {
+                const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+                const next = adminEmpPlanned.filter(s => s.planned_date >= todayStr).sort((a,b) => a.planned_date.localeCompare(b.planned_date))[0];
+                if (!next) return null;
+                const d = new Date(next.planned_date + 'T00:00:00');
+                const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+                const days = ['вс','пн','вт','ср','чт','пт','сб'];
+                const isToday = next.planned_date === todayStr;
+                const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+                const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth()+1).padStart(2,'0')}-${String(tomorrow.getDate()).padStart(2,'0')}`;
+                const isTomorrow = next.planned_date === tomorrowStr;
+                const dateLabel = isToday ? 'Сегодня' : isTomorrow ? 'Завтра' : `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+                return (
+                  <div className="emp-next-shift">
+                    <div className="emp-next-shift-left">
+                      <span className="emp-next-shift-label">Ближайшая смена</span>
+                      <span className="emp-next-shift-date">{dateLabel}</span>
+                      <span className="emp-next-shift-time">{next.shift_start} — {next.shift_end}</span>
+                      {next.note && <span className="emp-next-shift-note">{next.note}</span>}
+                    </div>
+                    <span className="emp-next-shift-icon">📅</span>
+                  </div>
+                );
+              })()}
+
               <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
               {selectedEmployee.on_shift && (
                 <button className="btn-secondary btn-secondary--danger" onClick={async () => {
