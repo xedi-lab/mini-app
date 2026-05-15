@@ -265,7 +265,7 @@ function App() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [adminStats, setAdminStats] = useState([]);
   const [adminDashboard, setAdminDashboard] = useState(null);
-  const [adminTab, setAdminTab] = useState('dashboard');
+  const [adminTab, setAdminTab] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -973,14 +973,54 @@ const fetchWorkedShifts = async (id) => {
         {/* АДМИН */}
         {screen === 'admin' && isAdmin && !selectedEmployee && (
           <div className="screen">
-            <h2 className="screen-title">Управление</h2>
-            <div className="admin-tabs">
-              <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>Сегодня</button>
-              <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`} onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>Активность</button>
-              <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`} onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>Штат</button>
-              <button className={`admin-tab ${adminTab === 'payroll' ? 'active' : ''}`} onClick={() => { setAdminTab('payroll'); fetchPayroll(payrollMonth); }}>Расчёт</button>
-              <button className={`admin-tab ${adminTab === 'faq' ? 'active' : ''}`} onClick={() => setAdminTab('faq')}>Инструкция</button>
-            </div>
+            {!adminTab ? (
+              <h2 className="screen-title">Управление</h2>
+            ) : (
+              <div className="screen-header">
+                <button className="back-btn" onClick={() => setAdminTab(null)}>← Назад</button>
+                <h2 className="screen-title">
+                  {adminTab === 'dashboard' ? 'Обзор дня' : adminTab === 'activity' ? 'Активность' : adminTab === 'staff' ? 'Штат' : adminTab === 'payroll' ? 'Расчёт' : 'Инструкция'}
+                </h2>
+              </div>
+            )}
+
+            {/* ГЛАВНОЕ МЕНЮ АДМИНА */}
+            {!adminTab && (
+              <div className="admin-home">
+                <div className="admin-menu-grid">
+                  <button className="admin-menu-card" onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>
+                    <span className="admin-menu-icon">📊</span>
+                    <span className="admin-menu-title">Обзор дня</span>
+                    <span className="admin-menu-sub">{adminDashboard ? `${adminDashboard.summary.on_shift_count} на смене` : 'Статистика'}</span>
+                    <span className="admin-menu-arrow">›</span>
+                  </button>
+                  <button className="admin-menu-card" onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>
+                    <span className="admin-menu-icon">👥</span>
+                    <span className="admin-menu-title">Штат</span>
+                    <span className="admin-menu-sub">{adminStats.length > 0 ? `${adminStats.length} сотрудников` : 'Сотрудники'}</span>
+                    <span className="admin-menu-arrow">›</span>
+                  </button>
+                  <button className="admin-menu-card" onClick={() => { setAdminTab('payroll'); fetchPayroll(payrollMonth); }}>
+                    <span className="admin-menu-icon">💰</span>
+                    <span className="admin-menu-title">Расчёт</span>
+                    <span className="admin-menu-sub">{adminDashboard ? `${adminDashboard.summary.month_payroll.toFixed(0)} ₽/мес` : 'Зарплаты'}</span>
+                    <span className="admin-menu-arrow">›</span>
+                  </button>
+                  <button className="admin-menu-card" onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>
+                    <span className="admin-menu-icon">⚡</span>
+                    <span className="admin-menu-title">Активность</span>
+                    <span className="admin-menu-sub">Лента событий</span>
+                    <span className="admin-menu-arrow">›</span>
+                  </button>
+                </div>
+                <button className="admin-menu-card admin-menu-card--wide" onClick={() => setAdminTab('faq')}>
+                  <span className="admin-menu-icon">📖</span>
+                  <span className="admin-menu-title">Инструкция</span>
+                  <span className="admin-menu-sub">Как пользоваться приложением</span>
+                  <span className="admin-menu-arrow">›</span>
+                </button>
+              </div>
+            )}
 
             {adminTab === 'dashboard' && (
               <div className="dashboard-screen">
@@ -1233,44 +1273,52 @@ const fetchWorkedShifts = async (id) => {
               <button className="back-btn" onClick={() => { setSelectedEmployee(null); setEditMode(false); }}>← Назад</button>
               <h2 className="screen-title">{selectedEmployee.first_name} {selectedEmployee.last_name}</h2>
             </div>
-            {!editMode ? (
-              <>
-                <div className="profile-info">
-                  <div className="info-row"><span className="info-label">Место работы</span><span className="info-value">{selectedEmployee.workplace}</span></div>
-                  <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{selectedEmployee.hourly_rate} ₽/час</span></div>
-                  <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? (selectedEmployee.open_shift?.confirmed_at ? '🟢 На смене' : '🟡 Ожидает подтверждения') : '⚪ Не работает'}</span></div>
-                </div>
-                <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
-                {selectedEmployee.on_shift && (
-  <button className="btn-secondary btn-secondary--danger" onClick={async () => {
-    await fetch(`${API}/admin/reset-shift/${selectedEmployee.telegram_id}`);
-    showMessage('✅ Смена сброшена');
-    fetchAdminStats();
-    setSelectedEmployee({...selectedEmployee, on_shift: false});
-  }}>
-    🔄 Сбросить смену
-  </button>
-)}
-                <button className="btn-secondary" onClick={() => setSubScreen('emp-history')}>📋 История смен</button>
-                <button className="btn-secondary" onClick={() => { setSubScreen('emp-adjustments'); fetchAdjustments(selectedEmployee.telegram_id, payrollMonth); fetchNoShows(selectedEmployee.telegram_id, payrollMonth); }}>💰 Бонусы и штрафы</button>
-                <button className="btn-secondary" onClick={() => setSubScreen('emp-planned')}>📅 Плановые смены</button>
-              </>
-            ) : (
-              <div className="edit-form">
-                <div className="form-group">
-                  <label>Место работы</label>
-                  <input className="form-input" value={editWorkplace} onChange={e => setEditWorkplace(e.target.value)} placeholder="Название компании" />
-                </div>
-                <div className="form-group">
-                  <label>Ставка (₽/час)</label>
-                  <input className="form-input" type="number" value={editRate} onChange={e => setEditRate(e.target.value)} placeholder="500" />
-                </div>
-                <div className="confirm-buttons">
-                  <button className="confirm-btn confirm-cancel" onClick={() => setEditMode(false)}>Отмена</button>
-                  <button className="confirm-btn confirm-ok" onClick={saveEmployeeEdit}>Сохранить</button>
-                </div>
+            <>
+              <div className="profile-info">
+                <div className="info-row"><span className="info-label">Место работы</span><span className="info-value">{selectedEmployee.workplace}</span></div>
+                <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{selectedEmployee.hourly_rate} ₽/час</span></div>
+                <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? (selectedEmployee.open_shift?.confirmed_at ? '🟢 На смене' : '🟡 Ожидает подтверждения') : '⚪ Не работает'}</span></div>
               </div>
-            )}
+              <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
+              {selectedEmployee.on_shift && (
+                <button className="btn-secondary btn-secondary--danger" onClick={async () => {
+                  await fetch(`${API}/admin/reset-shift/${selectedEmployee.telegram_id}`);
+                  showMessage('✅ Смена сброшена');
+                  fetchAdminStats();
+                  setSelectedEmployee({...selectedEmployee, on_shift: false});
+                }}>
+                  🔄 Сбросить смену
+                </button>
+              )}
+              <button className="btn-secondary" onClick={() => setSubScreen('emp-history')}>📋 История смен</button>
+              <button className="btn-secondary" onClick={() => { setSubScreen('emp-adjustments'); fetchAdjustments(selectedEmployee.telegram_id, payrollMonth); fetchNoShows(selectedEmployee.telegram_id, payrollMonth); }}>💰 Бонусы и штрафы</button>
+              <button className="btn-secondary" onClick={() => setSubScreen('emp-planned')}>📅 Плановые смены</button>
+
+              {editMode && (
+                <>
+                  <div className="sheet-overlay" onClick={() => setEditMode(false)} />
+                  <div className="edit-bottom-sheet">
+                    <div className="sheet-top-row">
+                      <div className="sheet-handle" />
+                      <button className="sheet-close" onClick={() => setEditMode(false)}>✕</button>
+                    </div>
+                    <h3 className="edit-sheet-title">Редактировать сотрудника</h3>
+                    <div className="form-group">
+                      <label>Место работы</label>
+                      <input className="form-input" value={editWorkplace} onChange={e => setEditWorkplace(e.target.value)} placeholder="Название компании" />
+                    </div>
+                    <div className="form-group">
+                      <label>Ставка (₽/час)</label>
+                      <input className="form-input" type="number" value={editRate} onChange={e => setEditRate(e.target.value)} placeholder="500" />
+                    </div>
+                    <div className="confirm-buttons">
+                      <button className="confirm-btn confirm-cancel" onClick={() => setEditMode(false)}>Отмена</button>
+                      <button className="confirm-btn confirm-ok" onClick={saveEmployeeEdit}>Сохранить</button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
           </div>
         )}
 
