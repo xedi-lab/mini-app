@@ -400,6 +400,7 @@ function App() {
       const res = await fetch(`${API}/register/status/${id}`);
       const data = await res.json();
       setRegStatus(data.status);
+      if (data.status === 'approved') fetchEmployee(id);
     } catch { setRegStatus('none'); }
   };
 
