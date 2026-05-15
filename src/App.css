@@ -2385,3 +2385,79 @@ body {
   text-align: center;
   margin-top: -4px;
 }
+
+.edit-sheet-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+
+.edit-sheet-avatar {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.edit-sheet-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.edit-sheet-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.edit-sheet-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.edit-sheet-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.edit-sheet-field-icon {
+  font-size: 1.2rem;
+  margin-top: 28px;
+  flex-shrink: 0;
+}
+
+.edit-sheet-hint {
+  font-size: 0.74rem;
+  color: var(--green-text);
+  font-weight: 500;
+  margin-top: 4px;
+  display: block;
+}
+
+.edit-sheet-save {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-lg);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s var(--spring), opacity 0.15s;
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+}
+
+.edit-sheet-save:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}

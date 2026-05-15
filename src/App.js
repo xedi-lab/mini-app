@@ -1168,11 +1168,11 @@ const fetchWorkedShifts = async (id) => {
                     <div className="skeleton skeleton-line skeleton-line--full" />
                     <div className="skeleton skeleton-line skeleton-line--medium" />
                   </div>
-                ) : payrollData.employees && payrollData.employees.length === 0 ? (
+                ) : payrollData.employees && (payrollData.employees.length === 0 || payrollData.employees.every(e => !e.shifts_count || parseInt(e.shifts_count) === 0)) ? (
                   <div className="empty">
-                    <div className="empty-icon">📊</div>
-                    <span className="empty-title">Данных нет</span>
-                    <span className="empty-subtitle">За выбранный месяц смен не найдено</span>
+                    <div className="empty-icon">🌱</div>
+                    <span className="empty-title">Данных за этот период нет</span>
+                    <span className="empty-subtitle">Смены за выбранный месяц не найдены. Рады, что Вы с нами — статистика появится здесь автоматически!</span>
                   </div>
                 ) : payrollData.employees && (
                   <>
@@ -1312,19 +1312,29 @@ const fetchWorkedShifts = async (id) => {
                       <div className="sheet-handle" />
                       <button className="sheet-close" onClick={() => setEditMode(false)}>✕</button>
                     </div>
-                    <h3 className="edit-sheet-title">Редактировать сотрудника</h3>
-                    <div className="form-group">
-                      <label>Место работы</label>
-                      <input className="form-input" value={editWorkplace} onChange={e => setEditWorkplace(e.target.value)} placeholder="Название компании" />
+                    <div className="edit-sheet-header">
+                      <div className="edit-sheet-avatar">{selectedEmployee.first_name[0]}{selectedEmployee.last_name[0]}</div>
+                      <div className="edit-sheet-name">{selectedEmployee.first_name} {selectedEmployee.last_name}</div>
+                      <div className="edit-sheet-sub">Редактирование данных</div>
                     </div>
-                    <div className="form-group">
-                      <label>Ставка (₽/час)</label>
-                      <input className="form-input" type="number" value={editRate} onChange={e => setEditRate(e.target.value)} placeholder="500" />
+                    <div className="edit-sheet-fields">
+                      <div className="edit-sheet-field">
+                        <span className="edit-sheet-field-icon">📍</span>
+                        <div className="form-group" style={{flex:1}}>
+                          <label>Место работы</label>
+                          <input className="form-input" value={editWorkplace} onChange={e => setEditWorkplace(e.target.value)} placeholder="Название компании" />
+                        </div>
+                      </div>
+                      <div className="edit-sheet-field">
+                        <span className="edit-sheet-field-icon">💰</span>
+                        <div className="form-group" style={{flex:1}}>
+                          <label>Ставка (₽/час)</label>
+                          <input className="form-input" type="number" value={editRate} onChange={e => setEditRate(e.target.value)} placeholder="500" />
+                          {editRate && <span className="edit-sheet-hint">= {(parseFloat(editRate) * 12).toFixed(0)} ₽ за 12-часовую смену</span>}
+                        </div>
+                      </div>
                     </div>
-                    <div className="confirm-buttons">
-                      <button className="confirm-btn confirm-cancel" onClick={() => setEditMode(false)}>Отмена</button>
-                      <button className="confirm-btn confirm-ok" onClick={saveEmployeeEdit}>Сохранить</button>
-                    </div>
+                    <button className="edit-sheet-save" onClick={saveEmployeeEdit}>Сохранить</button>
                   </div>
                 </>
               )}
