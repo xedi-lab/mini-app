@@ -588,7 +588,7 @@ const fetchWorkedShifts = async (id) => {
 
   if (!employee && !isAdmin && regStatus === 'none') return (
     <div className="onboarding">
-      {message && <div className={`toast ${message.type}`}>{message.text}</div>}
+      {message && <div className={`toast ${message.type}`}><span className="toast-icon">{message.type === 'error' ? '✕' : '✓'}</span><span>{message.text.replace(/^[✅❌⚠️]\s?/, '')}</span></div>}
       <div className="onboarding-content">
         <div className="onboarding-icon">👋</div>
         <h1 className="onboarding-title">Добро пожаловать</h1>
@@ -633,7 +633,7 @@ const fetchWorkedShifts = async (id) => {
         </div>
       )}
 
-      {message && <div className={`toast ${message.type}`}>{message.text}</div>}
+      {message && <div className={`toast ${message.type}`}><span className="toast-icon">{message.type === 'error' ? '✕' : '✓'}</span><span>{message.text.replace(/^[✅❌⚠️]\s?/, '')}</span></div>}
 
       {confirmClose && (
         <div className="confirm-overlay">
