@@ -290,6 +290,38 @@ function App() {
   const [repeatWeeks, setRepeatWeeks] = useState(0);
   const [showAdjForm, setShowAdjForm] = useState(false);
 
+  // ТЕМА
+  const getTgScheme = () => {
+    try { return WebApp.colorScheme || null; } catch { return null; }
+  };
+  const getInitialTheme = () => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return getTgScheme() || 'light';
+  };
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'light' || theme === 'dark') localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const setThemeMode = (mode) => {
+    if (mode === 'auto') {
+      const tg = getTgScheme() || 'light';
+      localStorage.removeItem('theme');
+      setTheme(tg);
+    } else {
+      setTheme(mode);
+    }
+  };
+
+  const currentThemeMode = () => {
+    const saved = localStorage.getItem('theme');
+    if (!saved) return 'auto';
+    return saved;
+  };
+
   useEffect(() => {
     WebApp.ready();
     WebApp.expand();
@@ -957,15 +989,94 @@ const fetchWorkedShifts = async (id) => {
           </div>
         )}
 
-        {/* ПОДДЕРЖКА */}
-        {screen === 'support' && (
+        {/* НАСТРОЙКИ */}
+        {screen === 'settings' && (
           <div className="screen">
-            <h2 className="screen-title">Поддержка</h2>
-            <div className="support-card">
-              <div className="support-icon">💬</div>
-              <p>По всем вопросам обращайтесь:</p>
-              <a href={`https://t.me/${config.supportUsername}`} className="support-link">@администратор</a>
-              <a href={`https://t.me/${config.developerUsername}`} className="support-link">@разработчик</a>
+            <h2 className="screen-title">Настройки</h2>
+            <div className="settings-screen">
+
+              {/* Тема */}
+              <div className="settings-section">
+                <span className="settings-section-label">Внешний вид</span>
+                <div className="settings-group">
+                  <div className="settings-row settings-row--static">
+                    <div className="settings-row-icon purple">🌙</div>
+                    <div className="settings-row-text">
+                      <span className="settings-row-title">Тема</span>
+                      <span className="settings-row-sub">Авто — по теме Telegram</span>
+                    </div>
+                    <div className="settings-row-right">
+                      <div className="theme-toggle">
+                        <button className={`theme-toggle-btn ${currentThemeMode() === 'auto' ? 'active' : ''}`} onClick={() => setThemeMode('auto')}>Авто</button>
+                        <button className={`theme-toggle-btn ${currentThemeMode() === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}>☀️</button>
+                        <button className={`theme-toggle-btn ${currentThemeMode() === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}>🌙</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Уведомления */}
+              <div className="settings-section">
+                <span className="settings-section-label">Уведомления</span>
+                <div className="settings-group">
+                  <div className="settings-row settings-row--static">
+                    <div className="settings-row-icon blue">🔔</div>
+                    <div className="settings-row-text">
+                      <span className="settings-row-title">Управление уведомлениями</span>
+                      <span className="settings-row-sub">Уведомления приходят через бота. Чтобы отключить — напишите боту /stop, чтобы включить — /start</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Поддержка */}
+              <div className="settings-section">
+                <span className="settings-section-label">Помощь</span>
+                <div className="settings-group">
+                  <a href={`https://t.me/${config.supportUsername}`} className="settings-row" style={{textDecoration:'none'}}>
+                    <div className="settings-row-icon green">💬</div>
+                    <div className="settings-row-text">
+                      <span className="settings-row-title">Написать администратору</span>
+                      <span className="settings-row-sub">@{config.supportUsername}</span>
+                    </div>
+                    <div className="settings-row-right"><span className="settings-row-arrow">›</span></div>
+                  </a>
+                  <a href={`https://t.me/${config.developerUsername}`} className="settings-row" style={{textDecoration:'none'}}>
+                    <div className="settings-row-icon gray">🛠</div>
+                    <div className="settings-row-text">
+                      <span className="settings-row-title">Написать разработчику</span>
+                      <span className="settings-row-sub">@{config.developerUsername}</span>
+                    </div>
+                    <div className="settings-row-right"><span className="settings-row-arrow">›</span></div>
+                  </a>
+                </div>
+              </div>
+
+              {/* Инструкция */}
+              <div className="settings-section">
+                <span className="settings-section-label">Инструкция</span>
+                <div className="faq-list">
+                  {[
+                    { icon: '🟢', title: 'Как начать смену', text: 'Смена открывается автоматически в плановое время. Вы получите уведомление — нажмите "Подтвердить присутствие" в приложении. Зарплата начисляется с момента начала по расписанию.' },
+                    { icon: '🔴', title: 'Как завершить смену', text: 'Нажмите кнопку "Завершить смену" на главном экране. Кнопка доступна не раньше чем через 30 минут после начала. Если не закрыть вручную — смена закроется автоматически в 21:00.' },
+                    { icon: '📅', title: 'Где посмотреть расписание', text: 'Вкладка "График" — интерактивный календарь с плановыми и отработанными сменами. Нажмите на любой день чтобы увидеть детали.' },
+                    { icon: '💰', title: 'Как считается зарплата', text: 'Ставка × часы работы. Посмотреть свою ставку можно в разделе "Профиль". Детальная история смен с заработком — кнопка "Учёт смен" в профиле.' },
+                    { icon: '⚠️', title: 'Что делать если забыл закрыть смену', text: 'Напишите администратору — он сможет скорректировать данные. Смена всё равно закроется автоматически в 21:00, но лучше закрывать вручную в конце работы.' },
+                  ].map((item, i) => (
+                    <FaqItem key={i} icon={item.icon} title={item.title} text={item.text} />
+                  ))}
+                </div>
+              </div>
+
+              {/* О приложении */}
+              <div className="settings-about-card">
+                <div className="settings-about-icon">⚡</div>
+                <div className="settings-about-name">HR-Bot</div>
+                <div className="settings-about-version">Версия 1.0</div>
+                <div className="settings-about-desc">Система учёта рабочего времени и расчёта зарплаты для малого бизнеса</div>
+              </div>
+
             </div>
           </div>
         )}
@@ -1592,14 +1703,15 @@ const fetchWorkedShifts = async (id) => {
           <span className="nav-icon">👤</span>
           <span className="nav-label">Профиль</span>
         </button>
-        <button className={`nav-item ${screen === 'support' ? 'active' : ''}`} onClick={() => navigateTo('support')}>
-          <span className="nav-icon">💬</span>
-          <span className="nav-label">Поддержка</span>
-        </button>
-        {isAdmin && (
+        {isAdmin ? (
           <button className={`nav-item ${screen === 'admin' ? 'active' : ''}`} onClick={() => { navigateTo('admin'); fetchAdminDashboard(); }}>
             <span className="nav-icon">⚙️</span>
             <span className="nav-label">Админ</span>
+          </button>
+        ) : (
+          <button className={`nav-item ${screen === 'settings' ? 'active' : ''}`} onClick={() => navigateTo('settings')}>
+            <span className="nav-icon">⚙️</span>
+            <span className="nav-label">Настройки</span>
           </button>
         )}
       </nav>
