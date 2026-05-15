@@ -950,6 +950,12 @@ body {
   border: 1px solid var(--border);
 }
 
+.staff-status.pending {
+  background: var(--orange-soft);
+  color: var(--orange);
+  border: 1px solid rgba(255,149,0,0.25);
+}
+
 /* CARD ANIMATIONS */
 .shift-item {
   animation: cardIn 0.3s var(--ease) both;

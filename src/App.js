@@ -987,7 +987,7 @@ const fetchWorkedShifts = async (id) => {
     <span className="staff-month-stats">{parseFloat(emp.total_hours || 0).toFixed(1)}ч · {parseFloat(emp.total_earned || 0).toFixed(0)}₽ за месяц</span>
   </div>
   <div className="staff-right">
-    <span className={`staff-status ${emp.on_shift ? 'on' : 'off'}`}>{emp.on_shift ? 'На смене' : 'Не работает'}</span>
+    <span className={`staff-status ${emp.on_shift ? (emp.open_shift?.confirmed_at ? 'on' : 'pending') : 'off'}`}>{emp.on_shift ? (emp.open_shift?.confirmed_at ? 'На смене' : 'Ожидает подтверждения') : 'Не работает'}</span>
   </div>
 </div>
                   ))
@@ -1009,7 +1009,7 @@ const fetchWorkedShifts = async (id) => {
                 <div className="profile-info">
                   <div className="info-row"><span className="info-label">Место работы</span><span className="info-value">{selectedEmployee.workplace}</span></div>
                   <div className="info-row"><span className="info-label">Ставка</span><span className="info-value">{selectedEmployee.hourly_rate} ₽/час</span></div>
-                  <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? '🟢 На смене' : '⚪ Не работает'}</span></div>
+                  <div className="info-row"><span className="info-label">Статус</span><span className="info-value">{selectedEmployee.on_shift ? (selectedEmployee.open_shift?.confirmed_at ? '🟢 На смене' : '🟡 Ожидает подтверждения') : '⚪ Не работает'}</span></div>
                 </div>
                 <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
                 {selectedEmployee.on_shift && (
