@@ -270,6 +270,7 @@ function App() {
   const [screen, setScreen] = useState('home');
   const [subScreen, setSubScreen] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [companyFrozen, setCompanyFrozen] = useState(false);
   const [screenLoading, setScreenLoading] = useState(false);
   const [shiftLoading, setShiftLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -398,6 +399,14 @@ function App() {
   const fetchEmployee = async (id) => {
     try {
       const res = await fetch(withCid(`/employee/${id}`));
+      if (res.status === 403) {
+        const data = await res.json().catch(() => ({}));
+        if (data.error === 'company_frozen') {
+          setCompanyFrozen(true);
+          setLoading(false);
+          return;
+        }
+      }
       if (!res.ok) throw new Error('Not found');
       const data = await res.json();
       setEmployee(data);
@@ -722,6 +731,16 @@ function App() {
   };
 
   if (loading) return <div className="loader-screen"><div className="loader"></div></div>;
+
+  if (companyFrozen) return (
+    <div className="onboarding">
+      <div className="onboarding-content">
+        <div className="onboarding-icon">🔴</div>
+        <h1 className="onboarding-title">Доступ приостановлен</h1>
+        <p className="onboarding-subtitle">Компания временно заморожена. Обратитесь к администратору.</p>
+      </div>
+    </div>
+  );
 
   if (!userId) return (
     <div className="not-found">
