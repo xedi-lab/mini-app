@@ -717,6 +717,16 @@ const fetchWorkedShifts = async (id) => {
               </div>
             )}
 
+            {/* FAQ */}
+            <div className="info-card">
+              <span className="info-card-title">Как это работает</span>
+              <div className="info-card-text">
+                <div>1. Смена открывается <strong>автоматически</strong> по расписанию</div>
+                <div>2. Подтверди присутствие <strong>нажав кнопку</strong></div>
+                <div>3. В конце дня смена закроется <strong>автоматически в 21:00</strong></div>
+              </div>
+            </div>
+
           </div>
         )}
 
