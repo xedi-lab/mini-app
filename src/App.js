@@ -281,6 +281,14 @@ function App() {
   const [regLoading, setRegLoading] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [analyticsPeriod, setAnalyticsPeriod] = useState('month');
+  const nsk = () => new Date(Date.now() + 7 * 60 * 60 * 1000);
+  const [adjustments, setAdjustments] = useState([]);
+  const [noShows, setNoShows] = useState([]);
+  const [payrollData, setPayrollData] = useState(null);
+  const [payrollMonth, setPayrollMonth] = useState(nsk().toISOString().slice(0, 7));
+  const [newAdj, setNewAdj] = useState({ amount: '', comment: '', type: 'bonus' });
+  const [repeatWeeks, setRepeatWeeks] = useState(0);
+  const [showAdjForm, setShowAdjForm] = useState(false);
 
   useEffect(() => {
     WebApp.ready();
@@ -462,6 +470,84 @@ const fetchWorkedShifts = async (id) => {
       setAdminEmpPlanned(await plannedRes.json());
       if (emp.telegram_id === userId) fetchPlanned(userId);
     } catch {}
+  };
+
+  const fetchAdjustments = async (telegramId, month) => {
+    try {
+      const res = await fetch(`${API}/admin/employee/${telegramId}/adjustments?month=${month}`);
+      const data = await res.json();
+      setAdjustments(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
+  const fetchNoShows = async (telegramId, month) => {
+    try {
+      const res = await fetch(`${API}/admin/employee/${telegramId}/no-shows?month=${month}`);
+      const data = await res.json();
+      setNoShows(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
+  const fetchPayroll = async (month) => {
+    try {
+      const res = await fetch(`${API}/admin/payroll?month=${month}`);
+      const data = await res.json();
+      setPayrollData(data);
+    } catch {}
+  };
+
+  const addAdjustment = async () => {
+    if (!newAdj.amount) return showMessage('Введи сумму', 'error');
+    const amount = newAdj.type === 'bonus' ? Math.abs(parseFloat(newAdj.amount)) : -Math.abs(parseFloat(newAdj.amount));
+    try {
+      await fetch(`${API}/admin/adjustment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: selectedEmployee.telegram_id,
+          amount,
+          comment: newAdj.comment,
+          month: payrollMonth
+        })
+      });
+      showMessage('✅ Добавлено');
+      setNewAdj({ amount: '', comment: '', type: 'bonus' });
+      setShowAdjForm(false);
+      fetchAdjustments(selectedEmployee.telegram_id, payrollMonth);
+    } catch { showMessage('Ошибка', 'error'); }
+  };
+
+  const deleteAdjustment = async (id) => {
+    try {
+      await fetch(`${API}/admin/adjustment/${id}`, { method: 'DELETE' });
+      showMessage('✅ Удалено');
+      fetchAdjustments(selectedEmployee.telegram_id, payrollMonth);
+    } catch { showMessage('Ошибка', 'error'); }
+  };
+
+  const addPlannedShiftRepeat = async () => {
+    if (!newShift.date) return showMessage('Выбери дату', 'error');
+    const start = newShift.start || '09:00';
+    const end = newShift.end || '21:00';
+    try {
+      await fetch(`${API}/admin/planned-shift/repeat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: selectedEmployee.telegram_id,
+          planned_date: newShift.date,
+          shift_start: start,
+          shift_end: end,
+          note: newShift.note,
+          weeks: repeatWeeks
+        })
+      });
+      showMessage(`✅ Смены добавлены на ${repeatWeeks} нед.`);
+      setNewShift({ date: '', start: '09:00', end: '21:00', note: '' });
+      setRepeatWeeks(0);
+      fetchAdminEmpData(selectedEmployee);
+      fetchPlanned(selectedEmployee.telegram_id);
+    } catch { showMessage('Ошибка', 'error'); }
   };
 
   const navigateTo = (s) => {
@@ -892,6 +978,7 @@ const fetchWorkedShifts = async (id) => {
               <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>Сегодня</button>
               <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`} onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>Активность</button>
               <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`} onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>Штат</button>
+              <button className={`admin-tab ${adminTab === 'payroll' ? 'active' : ''}`} onClick={() => { setAdminTab('payroll'); fetchPayroll(payrollMonth); }}>Расчёт</button>
               <button className={`admin-tab ${adminTab === 'faq' ? 'active' : ''}`} onClick={() => setAdminTab('faq')}>Инструкция</button>
             </div>
 
@@ -1015,6 +1102,79 @@ const fetchWorkedShifts = async (id) => {
               </div>
             )}
 
+            {adminTab === 'payroll' && (
+              <div className="payroll-screen">
+                <div className="payroll-month-nav">
+                  <button className="calendar-nav-btn" onClick={() => {
+                    const d = new Date(payrollMonth + '-01');
+                    d.setMonth(d.getMonth() - 1);
+                    const m = d.toISOString().slice(0, 7);
+                    setPayrollMonth(m);
+                    fetchPayroll(m);
+                  }}>‹</button>
+                  <span className="payroll-month-label">{payrollMonth}</span>
+                  <button className="calendar-nav-btn" onClick={() => {
+                    const d = new Date(payrollMonth + '-01');
+                    d.setMonth(d.getMonth() + 1);
+                    const m = d.toISOString().slice(0, 7);
+                    setPayrollMonth(m);
+                    fetchPayroll(m);
+                  }}>›</button>
+                </div>
+
+                {!payrollData ? (
+                  <div className="skeleton-card">
+                    <div className="skeleton skeleton-line skeleton-line--short" />
+                    <div className="skeleton skeleton-line skeleton-line--full" />
+                    <div className="skeleton skeleton-line skeleton-line--medium" />
+                  </div>
+                ) : payrollData.employees && payrollData.employees.length === 0 ? (
+                  <div className="empty">
+                    <div className="empty-icon">📊</div>
+                    <span className="empty-title">Данных нет</span>
+                    <span className="empty-subtitle">За выбранный месяц смен не найдено</span>
+                  </div>
+                ) : payrollData.employees && (
+                  <>
+                    {payrollData.employees.map((emp, i) => (
+                      <div key={i} className="payroll-emp-card">
+                        <div className="payroll-emp-name">{emp.first_name} {emp.last_name}</div>
+                        <div className="payroll-emp-workplace">{emp.workplace}</div>
+                        <div className="payroll-emp-row">
+                          <span className="payroll-emp-label">Смен</span>
+                          <span className="payroll-emp-val">{emp.shifts_count}</span>
+                        </div>
+                        <div className="payroll-emp-row">
+                          <span className="payroll-emp-label">Часов</span>
+                          <span className="payroll-emp-val">{parseFloat(emp.hours || 0).toFixed(1)}</span>
+                        </div>
+                        <div className="payroll-emp-row">
+                          <span className="payroll-emp-label">Заработано</span>
+                          <span className="payroll-emp-val">{parseFloat(emp.earned || 0).toFixed(0)} ₽</span>
+                        </div>
+                        <div className="payroll-emp-row">
+                          <span className="payroll-emp-label">Корректировки</span>
+                          <span className={`payroll-emp-val ${parseFloat(emp.adj_total || 0) >= 0 ? 'adj-pos' : 'adj-neg'}`}>
+                            {parseFloat(emp.adj_total || 0) >= 0 ? '+' : ''}{parseFloat(emp.adj_total || 0).toFixed(0)} ₽
+                          </span>
+                        </div>
+                        <div className="payroll-emp-row payroll-emp-total">
+                          <span className="payroll-emp-label">Итого</span>
+                          <span className="payroll-emp-val payroll-emp-total-val">{parseFloat(emp.total || 0).toFixed(0)} ₽</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="payroll-grand-total">
+                      Итого: {payrollData.employees.reduce((s, e) => s + parseFloat(e.total || 0), 0).toFixed(0)} ₽
+                    </div>
+                    <button className="action-btn action-btn--open" onClick={() => window.open(`${API}/admin/export/payroll?month=${payrollMonth}`, '_blank')}>
+                      📥 Скачать Excel
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {adminTab === 'faq' && (
               <div className="faq-list">
                 {[
@@ -1092,6 +1252,7 @@ const fetchWorkedShifts = async (id) => {
   </button>
 )}
                 <button className="btn-secondary" onClick={() => setSubScreen('emp-history')}>📋 История смен</button>
+                <button className="btn-secondary" onClick={() => { setSubScreen('emp-adjustments'); fetchAdjustments(selectedEmployee.telegram_id, payrollMonth); fetchNoShows(selectedEmployee.telegram_id, payrollMonth); }}>💰 Бонусы и штрафы</button>
                 <button className="btn-secondary" onClick={() => setSubScreen('emp-planned')}>📅 Плановые смены</button>
               </>
             ) : (
@@ -1145,6 +1306,98 @@ const fetchWorkedShifts = async (id) => {
           </div>
         )}
 
+        {/* БОНУСЫ И ШТРАФЫ (АДМИН) */}
+{screen === 'admin' && subScreen === 'emp-adjustments' && (
+  <div className="screen">
+    <div className="screen-header">
+      <button className="back-btn" onClick={() => { setSubScreen(null); setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>← Назад</button>
+      <h2 className="screen-title">Бонусы и штрафы</h2>
+    </div>
+
+    {/* Месяц */}
+    <div className="payroll-month-nav">
+      <button className="calendar-nav-btn" onClick={() => {
+        const d = new Date(payrollMonth + '-01');
+        d.setMonth(d.getMonth() - 1);
+        const m = d.toISOString().slice(0, 7);
+        setPayrollMonth(m);
+        fetchAdjustments(selectedEmployee.telegram_id, m);
+        fetchNoShows(selectedEmployee.telegram_id, m);
+      }}>‹</button>
+      <span className="payroll-month-label">{payrollMonth}</span>
+      <button className="calendar-nav-btn" onClick={() => {
+        const d = new Date(payrollMonth + '-01');
+        d.setMonth(d.getMonth() + 1);
+        const m = d.toISOString().slice(0, 7);
+        setPayrollMonth(m);
+        fetchAdjustments(selectedEmployee.telegram_id, m);
+        fetchNoShows(selectedEmployee.telegram_id, m);
+      }}>›</button>
+    </div>
+
+    {/* Список корректировок */}
+    <div className="adj-section-label">Бонусы и штрафы</div>
+    {adjustments.length === 0 ? (
+      <div className="empty">
+        <div className="empty-icon">💰</div>
+        <span className="empty-title">Корректировок нет</span>
+        <span className="empty-subtitle">Добавьте бонус или штраф</span>
+      </div>
+    ) : adjustments.map(adj => (
+      <div key={adj.id} className="adj-item">
+        <div className={`adj-amount ${adj.amount >= 0 ? 'positive' : 'negative'}`}>
+          {adj.amount >= 0 ? '+' : ''}{adj.amount} ₽
+        </div>
+        <div className="adj-info">
+          <span className="adj-comment">{adj.comment || (adj.amount >= 0 ? 'Бонус' : 'Штраф')}</span>
+          <span className="adj-date">{adj.created_at ? new Date(adj.created_at).toLocaleDateString('ru-RU') : adj.month}</span>
+        </div>
+        <button className="delete-btn" onClick={() => deleteAdjustment(adj.id)}>✕</button>
+      </div>
+    ))}
+
+    {/* Форма добавления */}
+    {!showAdjForm ? (
+      <button className="btn-secondary" onClick={() => setShowAdjForm(true)}>+ Добавить</button>
+    ) : (
+      <div className="adj-form-card">
+        <div className="form-group">
+          <label>Тип</label>
+          <select className="form-input" value={newAdj.type} onChange={e => setNewAdj({ ...newAdj, type: e.target.value })}>
+            <option value="bonus">Бонус +</option>
+            <option value="penalty">Штраф −</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Сумма (₽)</label>
+          <input className="form-input" type="number" min="0" value={newAdj.amount} onChange={e => setNewAdj({ ...newAdj, amount: e.target.value })} placeholder="500" />
+        </div>
+        <div className="form-group">
+          <label>Комментарий</label>
+          <input className="form-input" value={newAdj.comment} onChange={e => setNewAdj({ ...newAdj, comment: e.target.value })} placeholder="Необязательно" />
+        </div>
+        <div className="confirm-buttons">
+          <button className="confirm-btn confirm-cancel" onClick={() => { setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>Отмена</button>
+          <button className="confirm-btn confirm-ok" onClick={addAdjustment}>Добавить</button>
+        </div>
+      </div>
+    )}
+
+    {/* Невыходы */}
+    {noShows.length > 0 && (
+      <>
+        <div className="adj-section-label">Невыходы</div>
+        {noShows.map((ns, i) => (
+          <div key={i} className="no-show-card">
+            <span className="no-show-date">{ns.planned_date}</span>
+            <span className="no-show-time">{ns.shift_start} — {ns.shift_end}</span>
+          </div>
+        ))}
+      </>
+    )}
+  </div>
+)}
+
         {/* ПЛАНОВЫЕ СМЕНЫ (АДМИН) */}
 {screen === 'admin' && subScreen === 'emp-planned' && (
   <div className="screen">
@@ -1183,8 +1436,28 @@ const fetchWorkedShifts = async (id) => {
         />
       </div>
 
-      <button className="action-btn action-btn--open" onClick={addPlannedShift}>
-        Добавить смену
+      {/* Повтор на N недель */}
+      <div className="repeat-toggle-row">
+        <label className="repeat-toggle-label">
+          <input
+            type="checkbox"
+            checked={repeatWeeks > 0}
+            onChange={e => setRepeatWeeks(e.target.checked ? 2 : 0)}
+          />
+          <span>Повторять еженедельно</span>
+        </label>
+      </div>
+      {repeatWeeks > 0 && (
+        <div className="form-group">
+          <label>Количество недель</label>
+          <select className="form-input" value={repeatWeeks} onChange={e => setRepeatWeeks(parseInt(e.target.value))}>
+            {[2, 3, 4, 6, 8].map(w => <option key={w} value={w}>{w} недели</option>)}
+          </select>
+        </div>
+      )}
+
+      <button className="action-btn action-btn--open" onClick={repeatWeeks > 0 ? addPlannedShiftRepeat : addPlannedShift}>
+        {repeatWeeks > 0 ? `Добавить на ${repeatWeeks} нед.` : 'Добавить смену'}
       </button>
     </div>
 

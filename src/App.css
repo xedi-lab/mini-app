@@ -2049,4 +2049,208 @@ body {
 .analytics-card-value.yellow { color: var(--orange); }
 .analytics-card-value.red { color: var(--red-text); }
 
+/* ============================================
+   PAYROLL TAB
+   ============================================ */
+
+.payroll-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.payroll-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 10px 0 4px;
+}
+
+.payroll-month-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 90px;
+  text-align: center;
+}
+
+.payroll-emp-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.payroll-emp-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.payroll-emp-workplace {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.payroll-emp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payroll-emp-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.payroll-emp-val {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.payroll-emp-val.adj-pos { color: var(--green-text); }
+.payroll-emp-val.adj-neg { color: var(--red-text); }
+
+.payroll-emp-total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.payroll-emp-total-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.payroll-grand-total {
+  background: var(--accent-soft);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+/* ============================================
+   ADJUSTMENTS SUBSCREEN
+   ============================================ */
+
+.adj-section-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 2px;
+}
+
+.adj-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.adj-amount {
+  font-size: 0.95rem;
+  font-weight: 700;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.adj-amount.positive { color: var(--green-text); }
+.adj-amount.negative { color: var(--red-text); }
+
+.adj-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adj-comment {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.adj-date {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+.adj-form-card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* NO-SHOW CARDS */
+.no-show-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--red-soft);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  border: 1px solid rgba(255,59,48,0.12);
+}
+
+.no-show-date {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--red-text);
+}
+
+.no-show-time {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   REPEAT SHIFT TOGGLE
+   ============================================ */
+
+.repeat-toggle-row {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.repeat-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.repeat-toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .analytics-card-sub { font-size: 0.68rem; color: var(--text-tertiary); }
