@@ -560,6 +560,9 @@ const fetchWorkedShifts = async (id) => {
     const next = upcoming[0];
     const isTomorrow = next.planned_date === tomorrowStr;
     const isToday = next.planned_date === todayStr;
+
+    // Скрываем сегодняшнюю смену если она уже была отработана/сброшена
+    if (isToday && !stats?.on_shift && stats?.worked_today) return null;
     const d = new Date(next.planned_date + 'T00:00:00');
     const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
     const label = isToday ? 'Сегодня' : isTomorrow ? 'Завтра' : `${d.getDate()} ${months[d.getMonth()]}`;
