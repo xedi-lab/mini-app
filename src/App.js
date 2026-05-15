@@ -232,6 +232,20 @@ function TimePicker({ value, onChange, label }) {
   );
 }
 
+function FaqItem({ icon, title, text }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className={`faq-item ${open ? 'faq-item--open' : ''}`} onClick={() => setOpen(!open)}>
+      <div className="faq-header">
+        <span className="faq-icon">{icon}</span>
+        <span className="faq-title">{title}</span>
+        <span className="faq-arrow">{open ? '−' : '+'}</span>
+      </div>
+      {open && <div className="faq-body">{text}</div>}
+    </div>
+  );
+}
+
 function App() {
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
@@ -876,6 +890,7 @@ const fetchWorkedShifts = async (id) => {
               <button className={`admin-tab ${adminTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setAdminTab('dashboard'); fetchAdminDashboard(); }}>Сегодня</button>
               <button className={`admin-tab ${adminTab === 'activity' ? 'active' : ''}`} onClick={() => { setAdminTab('activity'); fetchAdminDashboard(); }}>Активность</button>
               <button className={`admin-tab ${adminTab === 'staff' ? 'active' : ''}`} onClick={() => { setAdminTab('staff'); fetchAdminStats(); }}>Штат</button>
+              <button className={`admin-tab ${adminTab === 'faq' ? 'active' : ''}`} onClick={() => setAdminTab('faq')}>Инструкция</button>
             </div>
 
             {adminTab === 'dashboard' && (
@@ -995,6 +1010,55 @@ const fetchWorkedShifts = async (id) => {
 </div>
                   ))
                 }
+              </div>
+            )}
+
+            {adminTab === 'faq' && (
+              <div className="faq-list">
+                {[
+                  {
+                    icon: '👤',
+                    title: 'Как добавить сотрудника',
+                    text: 'Сотрудник открывает бота и нажимает "Открыть приложение". На экране регистрации вводит имя и фамилию. Вам приходит уведомление в Telegram — нажмите "Одобрить". После этого сотрудник появится во вкладке "Штат".'
+                  },
+                  {
+                    icon: '⚙️',
+                    title: 'Как настроить ставку и место работы',
+                    text: 'Штат → выберите сотрудника → "Редактировать". Укажите часовую ставку (₽/час) и место работы. Зарплата за смену считается автоматически: часы × ставка.'
+                  },
+                  {
+                    icon: '📅',
+                    title: 'Как назначить смену',
+                    text: 'Штат → выберите сотрудника → "Плановые смены" → выберите дату и время → "Добавить смену". Сотрудник получит уведомление о назначенной смене. Накануне вечером придёт напоминание автоматически.'
+                  },
+                  {
+                    icon: '🟢',
+                    title: 'Как открывается смена',
+                    text: 'Смена открывается автоматически в плановое время (±7 минут). Сотрудник получает уведомление в Telegram и должен подтвердить присутствие кнопкой в приложении. Зарплата считается с планового времени начала.'
+                  },
+                  {
+                    icon: '⚠️',
+                    title: 'Алёрты об опоздании',
+                    text: 'Если сотрудник не подтвердил присутствие в течение 15 минут после открытия смены — вам придёт уведомление в Telegram с именем сотрудника и временем без подтверждения.'
+                  },
+                  {
+                    icon: '🔴',
+                    title: 'Как закрывается смена',
+                    text: 'Сотрудник закрывает смену вручную кнопкой в приложении (не раньше чем через 30 минут после начала). В 21:00 все незакрытые смены закрываются автоматически. Переработка после 21:00 не оплачивается.'
+                  },
+                  {
+                    icon: '🔄',
+                    title: 'Сброс смены',
+                    text: 'Если нужно отменить текущую смену — Штат → сотрудник → "Сбросить смену". Смена закроется с нулевыми часами и не попадёт в статистику.'
+                  },
+                  {
+                    icon: '📊',
+                    title: 'Статистика и выплаты',
+                    text: 'В 21:00 вам приходит итог дня с часами и заработком каждого сотрудника. Подробная статистика — во вкладке "Сегодня" и "Активность". История смен каждого сотрудника доступна в его профиле.'
+                  },
+                ].map((item, i) => (
+                  <FaqItem key={i} icon={item.icon} title={item.title} text={item.text} />
+                ))}
               </div>
             )}
           </div>
