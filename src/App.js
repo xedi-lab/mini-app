@@ -279,6 +279,9 @@ function App() {
   const [adminDashboard, setAdminDashboard] = useState(null);
   const [adminTab, setAdminTab] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminName, setAdminNameState] = useState(() => localStorage.getItem('adminName') || '');
+  const [editingAdminName, setEditingAdminName] = useState(false);
+  const [adminNameInput, setAdminNameInput] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editRate, setEditRate] = useState('');
@@ -357,7 +360,9 @@ function App() {
     setDebugInfo(debug);
     if (detectedId) {
       setUserId(detectedId);
-      setIsAdmin(ADMIN_IDS.includes(detectedId));
+      const isMasterAdmin = ADMIN_IDS.includes(detectedId);
+      setIsAdmin(isMasterAdmin);
+      if (isMasterAdmin) fetchAdminDashboard();
       fetchEmployee(detectedId);
     } else {
       debug += `FINAL: Could not detect user ID\n`;
@@ -407,8 +412,8 @@ function App() {
         const adminData = await adminRes.json();
         if (adminData.is_admin) {
           setIsAdmin(true);
-          setScreen('admin');
           setLoading(false);
+          fetchAdminDashboard();
           return;
         }
       } catch {}
@@ -800,6 +805,49 @@ function App() {
 
       <div className="content">
 
+        {/* ГЛАВНАЯ — ADMIN без employee */}
+        {screen === 'home' && isAdmin && !employee && (
+          <div className="screen">
+            <div className="hero-card">
+              <div className="hero-top">
+                <div className="hero-info">
+                  <span className="hero-greeting">Привет,</span>
+                  <span className="hero-name">{adminName || 'Администратор'}</span>
+                  <span className="hero-workplace">Панель управления</span>
+                </div>
+                <div className="hero-status-badge on">
+                  <span className="hero-status-dot active"></span>
+                  Администратор
+                </div>
+              </div>
+            </div>
+
+            {adminDashboard && (
+              <div className="stats-row">
+                <div className="stat-card">
+                  <span className="stat-value">{adminDashboard.summary.on_shift_count}</span>
+                  <span className="stat-label">На смене</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{adminDashboard.summary.done_today_count}</span>
+                  <span className="stat-label">Отработали</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{adminDashboard.summary.not_working_count}</span>
+                  <span className="stat-label">Не вышли</span>
+                </div>
+              </div>
+            )}
+
+            <div className="info-card">
+              <span className="info-card-title">Быстрый доступ</span>
+              <div className="info-card-text">
+                <div>Переключись на вкладку <strong>Управление ⚙️</strong> для полной панели</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* ГЛАВНАЯ */}
         {screen === 'home' && employee && (
           <div className="screen">
@@ -881,6 +929,46 @@ function App() {
           <div className="screen">
             <h2 className="screen-title">График</h2>
             <ScheduleCalendar shifts={plannedShifts} workedShifts={workedShifts} />
+          </div>
+        )}
+
+        {/* ПРОФИЛЬ — ADMIN без employee */}
+        {screen === 'profile' && isAdmin && !employee && (
+          <div className="screen">
+            <h2 className="screen-title">Профиль</h2>
+            <div className="profile-card">
+              <div className="profile-avatar">{adminName ? adminName[0].toUpperCase() : '👤'}</div>
+              <h3>{adminName || 'Администратор'}</h3>
+              <span className="profile-workplace">Администратор компании</span>
+            </div>
+
+            {!editingAdminName ? (
+              <button className="btn-secondary" onClick={() => { setAdminNameInput(adminName); setEditingAdminName(true); }}>
+                ✏️ {adminName ? 'Изменить имя' : 'Указать имя'}
+              </button>
+            ) : (
+              <div className="adj-form-card">
+                <div className="form-group">
+                  <label>Ваше имя</label>
+                  <input className="form-input" value={adminNameInput} onChange={e => setAdminNameInput(e.target.value)} placeholder="Иван Иванов" autoFocus />
+                </div>
+                <div className="confirm-buttons">
+                  <button className="confirm-btn confirm-cancel" onClick={() => setEditingAdminName(false)}>Отмена</button>
+                  <button className="confirm-btn confirm-ok" onClick={() => {
+                    const name = adminNameInput.trim();
+                    if (!name) return;
+                    localStorage.setItem('adminName', name);
+                    setAdminNameState(name);
+                    setEditingAdminName(false);
+                    showMessage('✅ Имя сохранено');
+                  }}>Сохранить</button>
+                </div>
+              </div>
+            )}
+
+            <div className="profile-info">
+              <div className="info-row"><span className="info-label">Роль</span><span className="info-value">Администратор</span></div>
+            </div>
           </div>
         )}
 
