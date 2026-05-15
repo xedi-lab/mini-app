@@ -1,5 +1,5 @@
 import config from './config';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import WebApp from '@twa-dev/sdk';
 import './App.css';
 
@@ -68,7 +68,6 @@ function ScheduleCalendar({ shifts, workedShifts = [] }) {
         <button className="calendar-nav-btn" onClick={nextMonth}>›</button>
       </div>
 
-      {/* ЛЕГЕНДА */}
       <div className="calendar-legend">
         <div className="calendar-legend-item">
           <span className="calendar-legend-dot planned"></span>
@@ -182,7 +181,6 @@ function ScheduleCalendar({ shifts, workedShifts = [] }) {
   );
 }
 
-// ПИКЕР ДАТЫ
 function DatePicker({ value, onChange }) {
   const today = new Date();
   const days = Array.from({ length: 30 }, (_, i) => {
@@ -249,6 +247,20 @@ function FaqItem({ icon, title, text }) {
 }
 
 function App() {
+  // company id из URL (?cid=N) — читаем один раз при инициализации
+  const companyId = useRef((() => {
+    const params = new URLSearchParams(window.location.search);
+    const cid = params.get('cid');
+    return cid ? parseInt(cid) : null;
+  })());
+
+  // добавляет ?cid= или &cid= к пути
+  const withCid = (path) => {
+    if (!companyId.current) return `${API}${path}`;
+    const sep = path.includes('?') ? '&' : '?';
+    return `${API}${path}${sep}cid=${companyId.current}`;
+  };
+
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [stats, setStats] = useState(null);
@@ -290,7 +302,6 @@ function App() {
   const [repeatWeeks, setRepeatWeeks] = useState(0);
   const [showAdjForm, setShowAdjForm] = useState(false);
 
-  // ТЕМА
   const getTgScheme = () => { try { return WebApp.colorScheme || null; } catch { return null; } };
   const getSavedMode = () => { const s = localStorage.getItem('themeMode'); return s || 'auto'; };
   const applyTheme = (mode) => {
@@ -312,6 +323,7 @@ function App() {
     WebApp.expand();
     let detectedId = null;
     let debug = '';
+    debug += `Company ID: ${companyId.current}\n`;
     const tgUser = WebApp.initDataUnsafe?.user;
     debug += `Method1: ${JSON.stringify(tgUser)}\n`;
     if (tgUser && tgUser.id) {
@@ -380,7 +392,7 @@ function App() {
 
   const fetchEmployee = async (id) => {
     try {
-      const res = await fetch(`${API}/employee/${id}`);
+      const res = await fetch(withCid(`/employee/${id}`));
       if (!res.ok) throw new Error('Not found');
       const data = await res.json();
       setEmployee(data);
@@ -397,7 +409,7 @@ function App() {
 
   const checkRegStatus = async (id) => {
     try {
-      const res = await fetch(`${API}/register/status/${id}`);
+      const res = await fetch(withCid(`/register/status/${id}`));
       const data = await res.json();
       setRegStatus(data.status);
       if (data.status === 'approved') fetchEmployee(id);
@@ -413,7 +425,12 @@ function App() {
       const res = await fetch(`${API}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ telegram_id: userId, first_name: regForm.first_name.trim(), last_name: regForm.last_name.trim() })
+        body: JSON.stringify({
+          telegram_id: userId,
+          first_name: regForm.first_name.trim(),
+          last_name: regForm.last_name.trim(),
+          cid: companyId.current
+        })
       });
       const data = await res.json();
       if (data.success || data.status === 'pending') setRegStatus('pending');
@@ -424,7 +441,7 @@ function App() {
 
   const fetchStats = async (id) => {
     try {
-      const res = await fetch(`${API}/employee/${id}/stats`);
+      const res = await fetch(withCid(`/employee/${id}/stats`));
       const data = await res.json();
       setStats(data);
     } catch {}
@@ -432,23 +449,23 @@ function App() {
 
   const fetchPlanned = async (id) => {
     try {
-      const res = await fetch(`${API}/employee/${id}/planned`);
+      const res = await fetch(withCid(`/employee/${id}/planned`));
       const data = await res.json();
       setPlannedShifts(data);
     } catch {}
   };
 
-const fetchWorkedShifts = async (id) => {
-  try {
-    const res = await fetch(`${API}/employee/${id}/shifts/calendar`);
-    const data = await res.json();
-    setWorkedShifts(data);
-  } catch {}
-};
+  const fetchWorkedShifts = async (id) => {
+    try {
+      const res = await fetch(withCid(`/employee/${id}/shifts/calendar`));
+      const data = await res.json();
+      setWorkedShifts(data);
+    } catch {}
+  };
 
   const fetchPastShifts = async (id) => {
     try {
-      const res = await fetch(`${API}/employee/${id}/shifts?period=3months`);
+      const res = await fetch(withCid(`/employee/${id}/shifts?period=3months`));
       const data = await res.json();
       setPastShifts(data);
     } catch {}
@@ -456,7 +473,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchAnalytics = async (id) => {
     try {
-      const res = await fetch(`${API}/employee/${id}/analytics`);
+      const res = await fetch(withCid(`/employee/${id}/analytics`));
       const data = await res.json();
       setAnalytics(data);
     } catch {}
@@ -464,7 +481,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchAdminStats = async () => {
     try {
-      const res = await fetch(`${API}/admin/stats`);
+      const res = await fetch(withCid(`/admin/stats`));
       const data = await res.json();
       setAdminStats(data);
     } catch {}
@@ -472,7 +489,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchAdminDashboard = async () => {
     try {
-      const res = await fetch(`${API}/admin/dashboard`);
+      const res = await fetch(withCid(`/admin/dashboard`));
       const data = await res.json();
       setAdminDashboard(data);
     } catch {}
@@ -481,8 +498,8 @@ const fetchWorkedShifts = async (id) => {
   const fetchAdminEmpData = async (emp) => {
     try {
       const [shiftsRes, plannedRes] = await Promise.all([
-        fetch(`${API}/admin/employee/${emp.telegram_id}/shifts`),
-        fetch(`${API}/admin/employee/${emp.telegram_id}/planned`)
+        fetch(withCid(`/admin/employee/${emp.telegram_id}/shifts`)),
+        fetch(withCid(`/admin/employee/${emp.telegram_id}/planned`))
       ]);
       setAdminEmpShifts(await shiftsRes.json());
       setAdminEmpPlanned(await plannedRes.json());
@@ -492,7 +509,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchAdjustments = async (telegramId, month) => {
     try {
-      const res = await fetch(`${API}/admin/employee/${telegramId}/adjustments?month=${month}`);
+      const res = await fetch(withCid(`/admin/employee/${telegramId}/adjustments?month=${month}`));
       const data = await res.json();
       setAdjustments(Array.isArray(data) ? data : []);
     } catch {}
@@ -500,7 +517,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchNoShows = async (telegramId, month) => {
     try {
-      const res = await fetch(`${API}/admin/employee/${telegramId}/no-shows?month=${month}`);
+      const res = await fetch(withCid(`/admin/employee/${telegramId}/no-shows?month=${month}`));
       const data = await res.json();
       setNoShows(Array.isArray(data) ? data : []);
     } catch {}
@@ -508,7 +525,7 @@ const fetchWorkedShifts = async (id) => {
 
   const fetchPayroll = async (month) => {
     try {
-      const res = await fetch(`${API}/admin/payroll?month=${month}`);
+      const res = await fetch(withCid(`/admin/payroll?month=${month}`));
       const data = await res.json();
       setPayrollData(data);
     } catch {}
@@ -525,7 +542,8 @@ const fetchWorkedShifts = async (id) => {
           telegram_id: selectedEmployee.telegram_id,
           amount,
           comment: newAdj.comment,
-          month: payrollMonth
+          month: payrollMonth,
+          cid: companyId.current
         })
       });
       showMessage('✅ Добавлено');
@@ -557,7 +575,8 @@ const fetchWorkedShifts = async (id) => {
           shift_start: start,
           shift_end: end,
           note: newShift.note,
-          weeks: repeatWeeks
+          weeks: repeatWeeks,
+          cid: companyId.current
         })
       });
       showMessage(`✅ Смены добавлены на ${repeatWeeks} нед.`);
@@ -581,7 +600,7 @@ const fetchWorkedShifts = async (id) => {
   const openShift = async () => {
     setShiftLoading(true);
     try {
-      const res = await fetch(`${API}/employee/${userId}/shift/open`, { method: 'POST' });
+      const res = await fetch(withCid(`/employee/${userId}/shift/open`), { method: 'POST' });
       const data = await res.json();
       if (data.success) { showMessage(`✅ Присутствие подтверждено в ${data.confirmed_at} (НСК)`); fetchStats(userId); }
       else showMessage(data.error, 'error');
@@ -593,7 +612,7 @@ const fetchWorkedShifts = async (id) => {
     setConfirmClose(false);
     setShiftLoading(true);
     try {
-      const res = await fetch(`${API}/employee/${userId}/shift/close`, { method: 'POST' });
+      const res = await fetch(withCid(`/employee/${userId}/shift/close`), { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         const msg = data.warning
@@ -608,7 +627,7 @@ const fetchWorkedShifts = async (id) => {
 
   const saveEmployeeEdit = async () => {
     try {
-      await fetch(`${API}/admin/employee/${selectedEmployee.telegram_id}`, {
+      await fetch(withCid(`/admin/employee/${selectedEmployee.telegram_id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hourly_rate: editRate, workplace: editWorkplace })
@@ -621,51 +640,51 @@ const fetchWorkedShifts = async (id) => {
   };
 
   const addPlannedShift = async () => {
-  if (!newShift.date) return showMessage('Выбери дату', 'error');
-  const start = newShift.start || '09:00';
-  const end = newShift.end || '21:00';
-  try {
-    await fetch(`${API}/admin/planned-shift`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        telegram_id: selectedEmployee.telegram_id,
-        planned_date: newShift.date,
-        shift_start: start,
-        shift_end: end,
-        note: newShift.note
-      })
-    });
-    showMessage('✅ Смена добавлена');
-    setNewShift({ date: '', start: '09:00', end: '21:00', note: '' });
-    fetchAdminEmpData(selectedEmployee);
-    fetchPlanned(selectedEmployee.telegram_id);
-  } catch { showMessage('Ошибка', 'error'); }
-};
+    if (!newShift.date) return showMessage('Выбери дату', 'error');
+    const start = newShift.start || '09:00';
+    const end = newShift.end || '21:00';
+    try {
+      await fetch(`${API}/admin/planned-shift`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegram_id: selectedEmployee.telegram_id,
+          planned_date: newShift.date,
+          shift_start: start,
+          shift_end: end,
+          note: newShift.note,
+          cid: companyId.current
+        })
+      });
+      showMessage('✅ Смена добавлена');
+      setNewShift({ date: '', start: '09:00', end: '21:00', note: '' });
+      fetchAdminEmpData(selectedEmployee);
+      fetchPlanned(selectedEmployee.telegram_id);
+    } catch { showMessage('Ошибка', 'error'); }
+  };
 
   const deletePlannedShift = async (id) => {
-  const el = document.getElementById(`shift-${id}`);
-  if (el) {
-    el.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease';
-    el.style.opacity = '0';
-    el.style.transform = 'translateX(-16px)';
-    el.style.maxHeight = '0';
-    el.style.padding = '0';
-    el.style.margin = '0';
-    el.style.overflow = 'hidden';
-    await new Promise(r => setTimeout(r, 320));
-  }
-  await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
-  fetchAdminEmpData(selectedEmployee);
-  fetchPlanned(selectedEmployee.telegram_id);
-};
+    const el = document.getElementById(`shift-${id}`);
+    if (el) {
+      el.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-16px)';
+      el.style.maxHeight = '0';
+      el.style.padding = '0';
+      el.style.margin = '0';
+      el.style.overflow = 'hidden';
+      await new Promise(r => setTimeout(r, 320));
+    }
+    await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
+    fetchAdminEmpData(selectedEmployee);
+    fetchPlanned(selectedEmployee.telegram_id);
+  };
 
   const formatTime = (dateStr) => {
     const d = new Date(dateStr);
     return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   };
 
-  // Следующая плановая смена
   const getNextShift = () => {
     const today = new Date();
     const pad = n => String(n).padStart(2, '0');
@@ -680,8 +699,6 @@ const fetchWorkedShifts = async (id) => {
     const next = upcoming[0];
     const isTomorrow = next.planned_date === tomorrowStr;
     const isToday = next.planned_date === todayStr;
-
-    // Скрываем сегодняшнюю смену если она уже была отработана/сброшена
     if (isToday && !stats?.on_shift && stats?.worked_today) return null;
     const d = new Date(next.planned_date + 'T00:00:00');
     const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
@@ -777,7 +794,6 @@ const fetchWorkedShifts = async (id) => {
         {screen === 'home' && employee && (
           <div className="screen">
 
-            {/* HERO CARD */}
             <div className={`hero-card ${stats?.on_shift ? 'hero-card--active' : ''}`}>
               <div className="hero-top">
                 <div className="hero-info">
@@ -802,7 +818,6 @@ const fetchWorkedShifts = async (id) => {
               )}
             </div>
 
-            {/* ACTION BUTTON */}
             {stats?.on_shift && stats?.open_shift?.confirmed_at ? (
               <button className="action-btn action-btn--close" onClick={() => setConfirmClose(true)} disabled={shiftLoading}>
                 {shiftLoading ? '...' : 'Завершить смену'}
@@ -813,7 +828,6 @@ const fetchWorkedShifts = async (id) => {
               </button>
             ) : null}
 
-            {/* STATS */}
             <div className="stats-row">
               <div className="stat-card">
                 <span className="stat-value">{stats?.shifts_count || 0}</span>
@@ -829,7 +843,6 @@ const fetchWorkedShifts = async (id) => {
               </div>
             </div>
 
-            {/* СЛЕДУЮЩАЯ СМЕНА */}
             {nextShift && (
               <div className={`next-shift-card ${nextShift.isTomorrow ? 'next-shift-card--tomorrow' : ''}`}>
                 <div className="next-shift-left">
@@ -841,7 +854,6 @@ const fetchWorkedShifts = async (id) => {
               </div>
             )}
 
-            {/* FAQ */}
             <div className="info-card">
               <span className="info-card-title">Как это работает</span>
               <div className="info-card-text">
@@ -856,11 +868,11 @@ const fetchWorkedShifts = async (id) => {
 
         {/* ГРАФИК */}
         {screen === 'schedule' && (
-  <div className="screen">
-    <h2 className="screen-title">График</h2>
-    <ScheduleCalendar shifts={plannedShifts} workedShifts={workedShifts} />
-  </div>
-)}
+          <div className="screen">
+            <h2 className="screen-title">График</h2>
+            <ScheduleCalendar shifts={plannedShifts} workedShifts={workedShifts} />
+          </div>
+        )}
 
         {/* ПРОФИЛЬ */}
         {screen === 'profile' && employee && !subScreen && (
@@ -880,12 +892,12 @@ const fetchWorkedShifts = async (id) => {
               <button className={`analytics-tab ${analyticsPeriod === 'three_months' ? 'active' : ''}`} onClick={() => { setAnalyticsPeriod('three_months'); if (!analytics) fetchAnalytics(userId); }}>3 месяца</button>
             </div>
             {!analytics ? (
-  <div className="skeleton-card">
-    <div className="skeleton skeleton-line skeleton-line--short" />
-    <div className="skeleton skeleton-line skeleton-line--full" />
-    <div className="skeleton skeleton-line skeleton-line--medium" />
-  </div>
-) : (
+              <div className="skeleton-card">
+                <div className="skeleton skeleton-line skeleton-line--short" />
+                <div className="skeleton skeleton-line skeleton-line--full" />
+                <div className="skeleton skeleton-line skeleton-line--medium" />
+              </div>
+            ) : (
               <>
                 <div className="analytics-main">
                   <div className="analytics-earned-card">
@@ -895,7 +907,7 @@ const fetchWorkedShifts = async (id) => {
                   </div>
                 </div>
                 {analyticsPeriod === 'month' && (
-                <div className="analytics-row" key="month-analytics">
+                  <div className="analytics-row" key="month-analytics">
                     <div className="analytics-card">
                       <span className="analytics-card-label">Прогноз</span>
                       <span className="analytics-card-value">{analytics.forecast} ₽</span>
@@ -928,50 +940,50 @@ const fetchWorkedShifts = async (id) => {
               <h2 className="screen-title">Учёт смен</h2>
             </div>
             {pastShifts.length === 0 ? (
-  <div className="empty">
-    <div className="empty-icon">📋</div>
-    <span className="empty-title">Смен пока нет</span>
-    <span className="empty-subtitle">История появится после первой смены</span>
-  </div>
-) : (() => {
-  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  const grouped = {};
-  pastShifts.forEach(shift => {
-    const d = new Date(shift.start_time);
-    const month = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`;
-    if (!grouped[month]) grouped[month] = [];
-    grouped[month].push(shift);
-  });
-  return Object.entries(grouped).map(([monthKey, monthShifts]) => {
-    const [year, month] = monthKey.split('-');
-    const monthEarned = monthShifts.reduce((sum, s) => sum + parseFloat(s.earned || 0), 0);
-    const monthHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours_worked || 0), 0);
-    return (
-      <div key={monthKey} className="shifts-month-group">
-        <div className="shifts-month-header">
-          <span className="shifts-month-label">{months[parseInt(month)-1]} {year}</span>
-          <span className="shifts-month-total">{monthHours.toFixed(1)}ч · {monthEarned.toFixed(0)}₽</span>
-        </div>
-        {monthShifts.map(shift => {
-          const start = new Date(shift.start_time);
-          const end = new Date(shift.end_time);
-          return (
-            <div key={shift.id} className="shift-item">
-              <div className="shift-date">{start.getDate()}.{String(start.getMonth()+1).padStart(2,'0')}</div>
-              <div className="shift-info">
-                <span className="shift-time">
-                  {String(start.getUTCHours()).padStart(2,'0')}:{String(start.getUTCMinutes()).padStart(2,'0')} — {String(end.getUTCHours()).padStart(2,'0')}:{String(end.getUTCMinutes()).padStart(2,'0')}
-                </span>
-                <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
+              <div className="empty">
+                <div className="empty-icon">📋</div>
+                <span className="empty-title">Смен пока нет</span>
+                <span className="empty-subtitle">История появится после первой смены</span>
               </div>
-              <div className="shift-earned">{shift.earned}₽</div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  });
-})()}
+            ) : (() => {
+              const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+              const grouped = {};
+              pastShifts.forEach(shift => {
+                const d = new Date(shift.start_time);
+                const month = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`;
+                if (!grouped[month]) grouped[month] = [];
+                grouped[month].push(shift);
+              });
+              return Object.entries(grouped).map(([monthKey, monthShifts]) => {
+                const [year, month] = monthKey.split('-');
+                const monthEarned = monthShifts.reduce((sum, s) => sum + parseFloat(s.earned || 0), 0);
+                const monthHours = monthShifts.reduce((sum, s) => sum + parseFloat(s.hours_worked || 0), 0);
+                return (
+                  <div key={monthKey} className="shifts-month-group">
+                    <div className="shifts-month-header">
+                      <span className="shifts-month-label">{months[parseInt(month)-1]} {year}</span>
+                      <span className="shifts-month-total">{monthHours.toFixed(1)}ч · {monthEarned.toFixed(0)}₽</span>
+                    </div>
+                    {monthShifts.map(shift => {
+                      const start = new Date(shift.start_time);
+                      const end = new Date(shift.end_time);
+                      return (
+                        <div key={shift.id} className="shift-item">
+                          <div className="shift-date">{start.getDate()}.{String(start.getMonth()+1).padStart(2,'0')}</div>
+                          <div className="shift-info">
+                            <span className="shift-time">
+                              {String(start.getUTCHours()).padStart(2,'0')}:{String(start.getUTCMinutes()).padStart(2,'0')} — {String(end.getUTCHours()).padStart(2,'0')}:{String(end.getUTCMinutes()).padStart(2,'0')}
+                            </span>
+                            <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
+                          </div>
+                          <div className="shift-earned">{shift.earned}₽</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
 
@@ -981,7 +993,6 @@ const fetchWorkedShifts = async (id) => {
             <h2 className="screen-title">Настройки</h2>
             <div className="settings-screen">
 
-              {/* Тема */}
               <div className="settings-section">
                 <span className="settings-section-label">Внешний вид</span>
                 <div className="settings-group">
@@ -1002,7 +1013,6 @@ const fetchWorkedShifts = async (id) => {
                 </div>
               </div>
 
-              {/* Уведомления */}
               <div className="settings-section">
                 <span className="settings-section-label">Уведомления</span>
                 <div className="settings-group">
@@ -1016,7 +1026,6 @@ const fetchWorkedShifts = async (id) => {
                 </div>
               </div>
 
-              {/* Поддержка */}
               <div className="settings-section">
                 <span className="settings-section-label">Помощь</span>
                 <div className="settings-group">
@@ -1039,7 +1048,6 @@ const fetchWorkedShifts = async (id) => {
                 </div>
               </div>
 
-              {/* Инструкция */}
               <div className="settings-section">
                 <span className="settings-section-label">Инструкция</span>
                 <div className="faq-list">
@@ -1055,7 +1063,6 @@ const fetchWorkedShifts = async (id) => {
                 </div>
               </div>
 
-              {/* О приложении */}
               <div className="settings-about-card">
                 <div className="settings-about-icon">⚡</div>
                 <div className="settings-about-name">HR-Bot</div>
@@ -1088,7 +1095,6 @@ const fetchWorkedShifts = async (id) => {
               </div>
             )}
 
-            {/* ГЛАВНОЕ МЕНЮ АДМИНА */}
             {!adminTab && (
               <div className="admin-home">
                 <div className="admin-menu-grid">
@@ -1129,15 +1135,15 @@ const fetchWorkedShifts = async (id) => {
             {adminTab === 'dashboard' && (
               <div key="dashboard" className="dashboard-screen">
                 {!adminDashboard ? (
-  <div className="skeleton-card">
-    <div className="skeleton skeleton-line skeleton-line--short" />
-    <div className="skeleton skeleton-line skeleton-line--full" />
-    <div className="skeleton skeleton-line skeleton-line--medium" />
-  </div>
-) : (
-  <>
-    <div className="dashboard-section">
-      <span className="dashboard-section-title">Обзор дня</span>
+                  <div className="skeleton-card">
+                    <div className="skeleton skeleton-line skeleton-line--short" />
+                    <div className="skeleton skeleton-line skeleton-line--full" />
+                    <div className="skeleton skeleton-line skeleton-line--medium" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="dashboard-section">
+                      <span className="dashboard-section-title">Обзор дня</span>
                       <div className="dashboard-summary">
                         <div className="dashboard-stat green">
                           <span className="dashboard-stat-value">{adminDashboard.summary.on_shift_count}</span>
@@ -1174,75 +1180,72 @@ const fetchWorkedShifts = async (id) => {
             {adminTab === 'activity' && (
               <div key="activity" className="dashboard-screen">
                 {!adminDashboard ? (
-  <div className="skeleton-card">
-    <div className="skeleton skeleton-line skeleton-line--short" />
-    <div className="skeleton skeleton-line skeleton-line--full" />
-    <div className="skeleton skeleton-line skeleton-line--medium" />
-  </div>
-) : adminDashboard.activity.length === 0 ? (
-  <div className="empty">
-    <div className="empty-icon">⚡</div>
-    <span className="empty-title">Активности пока нет</span>
-    <span className="empty-subtitle">Здесь будут появляться события</span>
-  </div>
-) : (
-                    <div className="bank-activity-list">
-                      {adminDashboard.activity.map((item, index) => {
-                        const isOpen = !item.end_time;
-                        const prevItem = adminDashboard.activity[index - 1];
-                        const itemDate = new Date(item.end_time || item.start_time);
-                        const prevDate = prevItem ? new Date(prevItem.end_time || prevItem.start_time) : null;
-                        const showDate = !prevDate || itemDate.toDateString() !== prevDate.toDateString();
-                        return (
-                          <React.Fragment key={item.id}>
-                            {showDate && (
-                              <div className="bank-activity-date">
-                                {itemDate.getDate() === new Date().getDate() ? 'Сегодня' : `${itemDate.getDate()}.${String(itemDate.getMonth() + 1).padStart(2, '0')}`}
-                              </div>
-                            )}
-                            <div className="bank-activity-item">
-                              <div className={`bank-activity-icon ${isOpen ? 'open' : 'close'}`}>{isOpen ? '↑' : '↓'}</div>
-                              <div className="bank-activity-info">
-                                <span className="bank-activity-name">{item.first_name} {item.last_name}</span>
-                                <span className="bank-activity-desc">{isOpen ? 'Открыл смену' : `Закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч`}</span>
-                              </div>
-                              <div className="bank-activity-right">
-                                {!isOpen && <span className="bank-activity-amount">+{parseFloat(item.earned || 0).toFixed(0)} ₽</span>}
-                                <span className="bank-activity-time">{formatTime(item.end_time || item.start_time)}</span>
-                              </div>
+                  <div className="skeleton-card">
+                    <div className="skeleton skeleton-line skeleton-line--short" />
+                    <div className="skeleton skeleton-line skeleton-line--full" />
+                    <div className="skeleton skeleton-line skeleton-line--medium" />
+                  </div>
+                ) : adminDashboard.activity.length === 0 ? (
+                  <div className="empty">
+                    <div className="empty-icon">⚡</div>
+                    <span className="empty-title">Активности пока нет</span>
+                    <span className="empty-subtitle">Здесь будут появляться события</span>
+                  </div>
+                ) : (
+                  <div className="bank-activity-list">
+                    {adminDashboard.activity.map((item, index) => {
+                      const isOpen = !item.end_time;
+                      const prevItem = adminDashboard.activity[index - 1];
+                      const itemDate = new Date(item.end_time || item.start_time);
+                      const prevDate = prevItem ? new Date(prevItem.end_time || prevItem.start_time) : null;
+                      const showDate = !prevDate || itemDate.toDateString() !== prevDate.toDateString();
+                      return (
+                        <React.Fragment key={item.id}>
+                          {showDate && (
+                            <div className="bank-activity-date">
+                              {itemDate.getDate() === new Date().getDate() ? 'Сегодня' : `${itemDate.getDate()}.${String(itemDate.getMonth() + 1).padStart(2, '0')}`}
                             </div>
-                          </React.Fragment>
-                        );
-                      })}
-                    </div>
-                  )
-                }
+                          )}
+                          <div className="bank-activity-item">
+                            <div className={`bank-activity-icon ${isOpen ? 'open' : 'close'}`}>{isOpen ? '↑' : '↓'}</div>
+                            <div className="bank-activity-info">
+                              <span className="bank-activity-name">{item.first_name} {item.last_name}</span>
+                              <span className="bank-activity-desc">{isOpen ? 'Открыл смену' : `Закрыл смену · ${item.hours_worked ? parseFloat(item.hours_worked).toFixed(1) : 0}ч`}</span>
+                            </div>
+                            <div className="bank-activity-right">
+                              {!isOpen && <span className="bank-activity-amount">+{parseFloat(item.earned || 0).toFixed(0)} ₽</span>}
+                              <span className="bank-activity-time">{formatTime(item.end_time || item.start_time)}</span>
+                            </div>
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
             {adminTab === 'staff' && (
               <div key="staff" className="staff-list">
                 {adminStats.length === 0 ? (
-  <div className="empty">
-    <div className="empty-icon">👥</div>
-    <span className="empty-title">Сотрудников пока нет</span>
-    <span className="empty-subtitle">Добавьте первого сотрудника через бота</span>
-  </div>
-) :
-                  adminStats.map(emp => (
-                    <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
-  <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
-  <div className="staff-info">
-    <span className="staff-name">{emp.first_name} {emp.last_name}</span>
-    <span className="staff-workplace">{emp.workplace}</span>
-    <span className="staff-month-stats">{parseFloat(emp.total_hours || 0).toFixed(1)}ч · {parseFloat(emp.total_earned || 0).toFixed(0)}₽ за месяц</span>
-  </div>
-  <div className="staff-right">
-    <span className={`staff-status ${emp.on_shift ? (emp.open_shift?.confirmed_at ? 'on' : 'pending') : 'off'}`}>{emp.on_shift ? (emp.open_shift?.confirmed_at ? 'На смене' : 'Ожидает подтверждения') : 'Не работает'}</span>
-  </div>
-</div>
-                  ))
-                }
+                  <div className="empty">
+                    <div className="empty-icon">👥</div>
+                    <span className="empty-title">Сотрудников пока нет</span>
+                    <span className="empty-subtitle">Добавьте первого сотрудника через бота</span>
+                  </div>
+                ) : adminStats.map(emp => (
+                  <div key={emp.id} className="staff-card" onClick={() => { setSelectedEmployee(emp); setEditRate(emp.hourly_rate); setEditWorkplace(emp.workplace); fetchAdminEmpData(emp); }}>
+                    <div className="admin-avatar">{emp.first_name[0]}{emp.last_name[0]}</div>
+                    <div className="staff-info">
+                      <span className="staff-name">{emp.first_name} {emp.last_name}</span>
+                      <span className="staff-workplace">{emp.workplace}</span>
+                      <span className="staff-month-stats">{parseFloat(emp.total_hours || 0).toFixed(1)}ч · {parseFloat(emp.total_earned || 0).toFixed(0)}₽ за месяц</span>
+                    </div>
+                    <div className="staff-right">
+                      <span className={`staff-status ${emp.on_shift ? (emp.open_shift?.confirmed_at ? 'on' : 'pending') : 'off'}`}>{emp.on_shift ? (emp.open_shift?.confirmed_at ? 'На смене' : 'Ожидает подтверждения') : 'Не работает'}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -1311,7 +1314,7 @@ const fetchWorkedShifts = async (id) => {
                     <div className="payroll-grand-total">
                       Итого: {payrollData.employees.reduce((s, e) => s + parseFloat(e.total || 0), 0).toFixed(0)} ₽
                     </div>
-                    <button className="action-btn action-btn--open" onClick={() => window.open(`${API}/admin/export/payroll?month=${payrollMonth}`, '_blank')}>
+                    <button className="action-btn action-btn--open" onClick={() => window.open(withCid(`/admin/export/payroll?month=${payrollMonth}`), '_blank')}>
                       📥 Скачать Excel
                     </button>
                   </React.Fragment>
@@ -1322,56 +1325,16 @@ const fetchWorkedShifts = async (id) => {
             {adminTab === 'faq' && (
               <div key="faq" className="faq-list">
                 {[
-                  {
-                    icon: '👤',
-                    title: 'Как добавить сотрудника',
-                    text: 'Сотрудник открывает бота и нажимает "Открыть приложение". На экране регистрации вводит имя и фамилию. Вам придёт уведомление в Telegram — нажмите "Одобрить". После этого сотрудник появится во вкладке "Штат".'
-                  },
-                  {
-                    icon: '⚙️',
-                    title: 'Как настроить ставку и место работы',
-                    text: 'Штат → выберите сотрудника → "Редактировать". Укажите часовую ставку (₽/час) и место работы. Зарплата за смену считается автоматически: часы × ставка.'
-                  },
-                  {
-                    icon: '📅',
-                    title: 'Как назначить смену',
-                    text: 'Штат → выберите сотрудника → "Плановые смены" → выберите дату и время → "Добавить смену". Сотрудник получит уведомление о назначенной смене. Накануне вечером придёт напоминание автоматически.'
-                  },
-                  {
-                    icon: '🟢',
-                    title: 'Как открывается смена',
-                    text: 'Смена открывается автоматически в плановое время (±7 минут). Сотрудник получает уведомление в Telegram и должен подтвердить присутствие кнопкой в приложении. Зарплата считается с планового времени начала.'
-                  },
-                  {
-                    icon: '⚠️',
-                    title: 'Оповещения об опоздании',
-                    text: 'Если сотрудник не подтвердил присутствие в течение 15 минут после открытия смены — Вам придёт уведомление в Telegram с именем сотрудника и временем без подтверждения.'
-                  },
-                  {
-                    icon: '🔴',
-                    title: 'Как закрывается смена',
-                    text: 'Сотрудник закрывает смену вручную кнопкой в приложении (не раньше чем через 30 минут после начала). В 21:00 все незакрытые смены закрываются автоматически. Переработка после 21:00 не оплачивается.'
-                  },
-                  {
-                    icon: '🔄',
-                    title: 'Сброс смены',
-                    text: 'Если нужно отменить текущую смену — Штат → сотрудник → "Сбросить смену". Смена закроется с нулевыми часами и не попадёт в статистику.'
-                  },
-                  {
-                    icon: '📊',
-                    title: 'Статистика и выплаты',
-                    text: 'В 21:00 Вам приходит итог дня с часами и заработком каждого сотрудника. Подробная статистика — во вкладке "Сегодня" и "Активность". История смен каждого сотрудника доступна в его профиле.'
-                  },
-                  {
-                    icon: '💰',
-                    title: 'Бонусы и штрафы',
-                    text: 'Штат → выберите сотрудника → "Бонусы и штрафы". Здесь можно добавить любую корректировку к зарплате за выбранный месяц: бонус (прибавляется) или штраф (вычитается). Итоговая сумма с учётом корректировок отображается во вкладке "Расчёт". Также здесь видны все невыходы сотрудника — дни, когда была плановая смена, но сотрудник не вышел.'
-                  },
-                  {
-                    icon: '📥',
-                    title: 'Экспорт в Excel',
-                    text: 'Расчёт → выберите нужный месяц → кнопка "Скачать Excel". Файл содержит три листа: итоговая таблица по всем сотрудникам, детальная история смен с временем и заработком, список бонусов и штрафов за месяц. Удобно для бухгалтерии или личного архива.'
-                  },
+                  { icon: '👤', title: 'Как добавить сотрудника', text: 'Сотрудник открывает бота и нажимает "Открыть приложение". На экране регистрации вводит имя и фамилию. Вам придёт уведомление в Telegram — нажмите "Одобрить". После этого сотрудник появится во вкладке "Штат".' },
+                  { icon: '⚙️', title: 'Как настроить ставку и место работы', text: 'Штат → выберите сотрудника → "Редактировать". Укажите часовую ставку (₽/час) и место работы. Зарплата за смену считается автоматически: часы × ставка.' },
+                  { icon: '📅', title: 'Как назначить смену', text: 'Штат → выберите сотрудника → "Плановые смены" → выберите дату и время → "Добавить смену". Сотрудник получит уведомление о назначенной смене. Накануне вечером придёт напоминание автоматически.' },
+                  { icon: '🟢', title: 'Как открывается смена', text: 'Смена открывается автоматически в плановое время (±7 минут). Сотрудник получает уведомление в Telegram и должен подтвердить присутствие кнопкой в приложении. Зарплата считается с планового времени начала.' },
+                  { icon: '⚠️', title: 'Оповещения об опоздании', text: 'Если сотрудник не подтвердил присутствие в течение 15 минут после открытия смены — Вам придёт уведомление в Telegram с именем сотрудника и временем без подтверждения.' },
+                  { icon: '🔴', title: 'Как закрывается смена', text: 'Сотрудник закрывает смену вручную кнопкой в приложении (не раньше чем через 30 минут после начала). В 21:00 все незакрытые смены закрываются автоматически. Переработка после 21:00 не оплачивается.' },
+                  { icon: '🔄', title: 'Сброс смены', text: 'Если нужно отменить текущую смену — Штат → сотрудник → "Сбросить смену". Смена закроется с нулевыми часами и не попадёт в статистику.' },
+                  { icon: '📊', title: 'Статистика и выплаты', text: 'В 21:00 Вам приходит итог дня с часами и заработком каждого сотрудника. Подробная статистика — во вкладке "Сегодня" и "Активность". История смен каждого сотрудника доступна в его профиле.' },
+                  { icon: '💰', title: 'Бонусы и штрафы', text: 'Штат → выберите сотрудника → "Бонусы и штрафы". Здесь можно добавить любую корректировку к зарплате за выбранный месяц: бонус (прибавляется) или штраф (вычитается). Итоговая сумма с учётом корректировок отображается во вкладке "Расчёт". Также здесь видны все невыходы сотрудника — дни, когда была плановая смена, но сотрудник не вышел.' },
+                  { icon: '📥', title: 'Экспорт в Excel', text: 'Расчёт → выберите нужный месяц → кнопка "Скачать Excel". Файл содержит три листа: итоговая таблица по всем сотрудникам, детальная история смен с временем и заработком, список бонусов и штрафов за месяц. Удобно для бухгалтерии или личного архива.' },
                 ].map((item, i) => (
                   <FaqItem key={i} icon={item.icon} title={item.title} text={item.text} />
                 ))}
@@ -1421,7 +1384,7 @@ const fetchWorkedShifts = async (id) => {
               <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
               {selectedEmployee.on_shift && (
                 <button className="btn-secondary btn-secondary--danger" onClick={async () => {
-                  await fetch(`${API}/admin/reset-shift/${selectedEmployee.telegram_id}`);
+                  await fetch(withCid(`/admin/reset-shift/${selectedEmployee.telegram_id}`));
                   showMessage('✅ Смена сброшена');
                   fetchAdminStats();
                   setSelectedEmployee({...selectedEmployee, on_shift: false});
@@ -1479,232 +1442,204 @@ const fetchWorkedShifts = async (id) => {
               <h2 className="screen-title">История смен</h2>
             </div>
             {adminEmpShifts.length === 0 ? (
-  <div className="empty">
-    <div className="empty-icon">📋</div>
-    <span className="empty-title">Смен пока нет</span>
-    <span className="empty-subtitle">История появится после первой смены</span>
-  </div>
-) :
-              adminEmpShifts.map(shift => {
-                const start = new Date(shift.start_time);
-                const end = new Date(shift.end_time);
-                return (
-                  <div key={shift.id} className="shift-item">
-                    <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
-                    <div className="shift-info">
-                      <span className="shift-time">{String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}</span>
-                      <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
-                    </div>
-                    <div className="shift-earned">{shift.earned}₽</div>
+              <div className="empty">
+                <div className="empty-icon">📋</div>
+                <span className="empty-title">Смен пока нет</span>
+                <span className="empty-subtitle">История появится после первой смены</span>
+              </div>
+            ) : adminEmpShifts.map(shift => {
+              const start = new Date(shift.start_time);
+              const end = new Date(shift.end_time);
+              return (
+                <div key={shift.id} className="shift-item">
+                  <div className="shift-date">{start.getDate()}.{String(start.getMonth() + 1).padStart(2, '0')}</div>
+                  <div className="shift-info">
+                    <span className="shift-time">{String(start.getUTCHours()).padStart(2, '0')}:{String(start.getUTCMinutes()).padStart(2, '0')} — {String(end.getUTCHours()).padStart(2, '0')}:{String(end.getUTCMinutes()).padStart(2, '0')}</span>
+                    <span className="shift-hours">{parseFloat(shift.hours_worked).toFixed(1)}ч</span>
                   </div>
-                );
-              })
-            }
+                  <div className="shift-earned">{shift.earned}₽</div>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {/* БОНУСЫ И ШТРАФЫ (АДМИН) */}
-{screen === 'admin' && subScreen === 'emp-adjustments' && (
-  <div className="screen">
-    <div className="screen-header">
-      <button className="back-btn" onClick={() => { setSubScreen(null); setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>← Назад</button>
-      <h2 className="screen-title">Бонусы и штрафы</h2>
-    </div>
+        {screen === 'admin' && subScreen === 'emp-adjustments' && (
+          <div className="screen">
+            <div className="screen-header">
+              <button className="back-btn" onClick={() => { setSubScreen(null); setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>← Назад</button>
+              <h2 className="screen-title">Бонусы и штрафы</h2>
+            </div>
 
-    {/* Месяц */}
-    <div className="payroll-month-nav">
-      <button className="calendar-nav-btn" onClick={() => {
-        const d = new Date(payrollMonth + '-01');
-        d.setMonth(d.getMonth() - 1);
-        const m = d.toISOString().slice(0, 7);
-        setPayrollMonth(m);
-        fetchAdjustments(selectedEmployee.telegram_id, m);
-        fetchNoShows(selectedEmployee.telegram_id, m);
-      }}>‹</button>
-      <span className="payroll-month-label">{payrollMonth}</span>
-      <button className="calendar-nav-btn" onClick={() => {
-        const d = new Date(payrollMonth + '-01');
-        d.setMonth(d.getMonth() + 1);
-        const m = d.toISOString().slice(0, 7);
-        setPayrollMonth(m);
-        fetchAdjustments(selectedEmployee.telegram_id, m);
-        fetchNoShows(selectedEmployee.telegram_id, m);
-      }}>›</button>
-    </div>
+            <div className="payroll-month-nav">
+              <button className="calendar-nav-btn" onClick={() => {
+                const d = new Date(payrollMonth + '-01');
+                d.setMonth(d.getMonth() - 1);
+                const m = d.toISOString().slice(0, 7);
+                setPayrollMonth(m);
+                fetchAdjustments(selectedEmployee.telegram_id, m);
+                fetchNoShows(selectedEmployee.telegram_id, m);
+              }}>‹</button>
+              <span className="payroll-month-label">{payrollMonth}</span>
+              <button className="calendar-nav-btn" onClick={() => {
+                const d = new Date(payrollMonth + '-01');
+                d.setMonth(d.getMonth() + 1);
+                const m = d.toISOString().slice(0, 7);
+                setPayrollMonth(m);
+                fetchAdjustments(selectedEmployee.telegram_id, m);
+                fetchNoShows(selectedEmployee.telegram_id, m);
+              }}>›</button>
+            </div>
 
-    {/* Список корректировок */}
-    <div className="adj-section-label">Бонусы и штрафы</div>
-    {adjustments.length === 0 ? (
-      <div className="empty">
-        <div className="empty-icon">💰</div>
-        <span className="empty-title">Корректировок нет</span>
-        <span className="empty-subtitle">Добавьте бонус или штраф</span>
-      </div>
-    ) : adjustments.map(adj => (
-      <div key={adj.id} className="adj-item">
-        <div className={`adj-amount ${adj.amount >= 0 ? 'positive' : 'negative'}`}>
-          {adj.amount >= 0 ? '+' : ''}{adj.amount} ₽
-        </div>
-        <div className="adj-info">
-          <span className="adj-comment">{adj.comment || (adj.amount >= 0 ? 'Бонус' : 'Штраф')}</span>
-          <span className="adj-date">{adj.created_at ? new Date(adj.created_at).toLocaleDateString('ru-RU') : adj.month}</span>
-        </div>
-        <button className="delete-btn" onClick={() => deleteAdjustment(adj.id)}>✕</button>
-      </div>
-    ))}
-
-    {/* Форма добавления */}
-    {!showAdjForm ? (
-      <button className="btn-secondary" onClick={() => setShowAdjForm(true)}>+ Добавить</button>
-    ) : (
-      <div className="adj-form-card">
-        <div className="form-group">
-          <label>Тип</label>
-          <select className="form-input" value={newAdj.type} onChange={e => setNewAdj({ ...newAdj, type: e.target.value })}>
-            <option value="bonus">Бонус +</option>
-            <option value="penalty">Штраф −</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Сумма (₽)</label>
-          <input className="form-input" type="number" min="0" value={newAdj.amount} onChange={e => setNewAdj({ ...newAdj, amount: e.target.value })} placeholder="500" />
-        </div>
-        <div className="form-group">
-          <label>Комментарий</label>
-          <input className="form-input" value={newAdj.comment} onChange={e => setNewAdj({ ...newAdj, comment: e.target.value })} placeholder="Необязательно" />
-        </div>
-        <div className="confirm-buttons">
-          <button className="confirm-btn confirm-cancel" onClick={() => { setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>Отмена</button>
-          <button className="confirm-btn confirm-ok" onClick={addAdjustment}>Добавить</button>
-        </div>
-      </div>
-    )}
-
-    {/* Невыходы */}
-    {noShows.length > 0 && (
-      <>
-        <div className="adj-section-label">Невыходы</div>
-        {noShows.map((ns, i) => (
-          <div key={i} className="no-show-card">
-            <span className="no-show-date">{ns.planned_date}</span>
-            <span className="no-show-time">{ns.shift_start} — {ns.shift_end}</span>
-          </div>
-        ))}
-      </>
-    )}
-  </div>
-)}
-
-        {/* ПЛАНОВЫЕ СМЕНЫ (АДМИН) */}
-{screen === 'admin' && subScreen === 'emp-planned' && (
-  <div className="screen">
-    <div className="screen-header">
-      <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
-      <h2 className="screen-title">Плановые смены</h2>
-    </div>
-
-    <div className="shift-form-card">
-      <span className="form-section-label">Дата</span>
-      <DatePicker
-        value={newShift.date}
-        onChange={date => setNewShift({...newShift, date})}
-      />
-
-      <div className="time-pickers-row">
-        <TimePicker
-          label="Начало"
-          value={newShift.start || '09:00'}
-          onChange={start => setNewShift({...newShift, start})}
-        />
-        <TimePicker
-          label="Конец"
-          value={newShift.end || '21:00'}
-          onChange={end => setNewShift({...newShift, end})}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Заметка (необязательно)</label>
-        <input
-          className="form-input"
-          value={newShift.note}
-          onChange={e => setNewShift({...newShift, note: e.target.value})}
-          placeholder="Необязательно"
-        />
-      </div>
-
-      {/* Повтор на N недель */}
-      <div className="repeat-toggle-row">
-        <label className="repeat-toggle-label">
-          <input
-            type="checkbox"
-            checked={repeatWeeks > 0}
-            onChange={e => setRepeatWeeks(e.target.checked ? 2 : 0)}
-          />
-          <span>Повторять еженедельно</span>
-        </label>
-      </div>
-      {repeatWeeks > 0 && (
-        <div className="form-group">
-          <label>Количество недель</label>
-          <select className="form-input" value={repeatWeeks} onChange={e => setRepeatWeeks(parseInt(e.target.value))}>
-            {[2, 3, 4, 6, 8].map(w => <option key={w} value={w}>{w} недели</option>)}
-          </select>
-        </div>
-      )}
-
-      <button className="action-btn action-btn--open" onClick={repeatWeeks > 0 ? addPlannedShiftRepeat : addPlannedShift}>
-        {repeatWeeks > 0 ? `Добавить на ${repeatWeeks} нед.` : 'Добавить смену'}
-      </button>
-    </div>
-
-    {(() => {
-      const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
-      const upcoming = adminEmpPlanned.filter(s => s.planned_date >= todayStr);
-      const past = adminEmpPlanned.filter(s => s.planned_date < todayStr);
-      return (
-        <>
-          <div className="shifts-list">
-            {upcoming.length === 0 ? (
+            <div className="adj-section-label">Бонусы и штрафы</div>
+            {adjustments.length === 0 ? (
               <div className="empty">
-                <div className="empty-icon">📅</div>
-                <span className="empty-title">Предстоящих смен нет</span>
-                <span className="empty-subtitle">Добавьте смену выше</span>
+                <div className="empty-icon">💰</div>
+                <span className="empty-title">Корректировок нет</span>
+                <span className="empty-subtitle">Добавьте бонус или штраф</span>
               </div>
-            ) : upcoming.map(shift => (
-              <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
-                <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-                <div className="shift-info">
-                  <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-                  {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+            ) : adjustments.map(adj => (
+              <div key={adj.id} className="adj-item">
+                <div className={`adj-amount ${adj.amount >= 0 ? 'positive' : 'negative'}`}>
+                  {adj.amount >= 0 ? '+' : ''}{adj.amount} ₽
                 </div>
-                <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+                <div className="adj-info">
+                  <span className="adj-comment">{adj.comment || (adj.amount >= 0 ? 'Бонус' : 'Штраф')}</span>
+                  <span className="adj-date">{adj.created_at ? new Date(adj.created_at).toLocaleDateString('ru-RU') : adj.month}</span>
+                </div>
+                <button className="delete-btn" onClick={() => deleteAdjustment(adj.id)}>✕</button>
               </div>
             ))}
-          </div>
-          {past.length > 0 && (
-            <details className="past-shifts-section">
-              <summary className="past-shifts-toggle">Прошедшие ({past.length})</summary>
-              <div className="shifts-list" style={{marginTop: 8}}>
-                {past.map(shift => (
-                  <div key={shift.id} id={`shift-${shift.id}`} className="shift-item shift-item--past">
-                    <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
-                    <div className="shift-info">
-                      <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
-                      {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
-                    </div>
-                    <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+
+            {!showAdjForm ? (
+              <button className="btn-secondary" onClick={() => setShowAdjForm(true)}>+ Добавить</button>
+            ) : (
+              <div className="adj-form-card">
+                <div className="form-group">
+                  <label>Тип</label>
+                  <select className="form-input" value={newAdj.type} onChange={e => setNewAdj({ ...newAdj, type: e.target.value })}>
+                    <option value="bonus">Бонус +</option>
+                    <option value="penalty">Штраф −</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Сумма (₽)</label>
+                  <input className="form-input" type="number" min="0" value={newAdj.amount} onChange={e => setNewAdj({ ...newAdj, amount: e.target.value })} placeholder="500" />
+                </div>
+                <div className="form-group">
+                  <label>Комментарий</label>
+                  <input className="form-input" value={newAdj.comment} onChange={e => setNewAdj({ ...newAdj, comment: e.target.value })} placeholder="Необязательно" />
+                </div>
+                <div className="confirm-buttons">
+                  <button className="confirm-btn confirm-cancel" onClick={() => { setShowAdjForm(false); setNewAdj({ amount: '', comment: '', type: 'bonus' }); }}>Отмена</button>
+                  <button className="confirm-btn confirm-ok" onClick={addAdjustment}>Добавить</button>
+                </div>
+              </div>
+            )}
+
+            {noShows.length > 0 && (
+              <>
+                <div className="adj-section-label">Невыходы</div>
+                {noShows.map((ns, i) => (
+                  <div key={i} className="no-show-card">
+                    <span className="no-show-date">{ns.planned_date}</span>
+                    <span className="no-show-time">{ns.shift_start} — {ns.shift_end}</span>
                   </div>
                 ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ПЛАНОВЫЕ СМЕНЫ (АДМИН) */}
+        {screen === 'admin' && subScreen === 'emp-planned' && (
+          <div className="screen">
+            <div className="screen-header">
+              <button className="back-btn" onClick={() => setSubScreen(null)}>← Назад</button>
+              <h2 className="screen-title">Плановые смены</h2>
+            </div>
+
+            <div className="shift-form-card">
+              <span className="form-section-label">Дата</span>
+              <DatePicker value={newShift.date} onChange={date => setNewShift({...newShift, date})} />
+
+              <div className="time-pickers-row">
+                <TimePicker label="Начало" value={newShift.start || '09:00'} onChange={start => setNewShift({...newShift, start})} />
+                <TimePicker label="Конец" value={newShift.end || '21:00'} onChange={end => setNewShift({...newShift, end})} />
               </div>
-            </details>
-          )}
-        </>
-      );
-    })()}
-  </div>
-)}
-                
+
+              <div className="form-group">
+                <label>Заметка (необязательно)</label>
+                <input className="form-input" value={newShift.note} onChange={e => setNewShift({...newShift, note: e.target.value})} placeholder="Необязательно" />
+              </div>
+
+              <div className="repeat-toggle-row">
+                <label className="repeat-toggle-label">
+                  <input type="checkbox" checked={repeatWeeks > 0} onChange={e => setRepeatWeeks(e.target.checked ? 2 : 0)} />
+                  <span>Повторять еженедельно</span>
+                </label>
+              </div>
+              {repeatWeeks > 0 && (
+                <div className="form-group">
+                  <label>Количество недель</label>
+                  <select className="form-input" value={repeatWeeks} onChange={e => setRepeatWeeks(parseInt(e.target.value))}>
+                    {[2, 3, 4, 6, 8].map(w => <option key={w} value={w}>{w} недели</option>)}
+                  </select>
+                </div>
+              )}
+
+              <button className="action-btn action-btn--open" onClick={repeatWeeks > 0 ? addPlannedShiftRepeat : addPlannedShift}>
+                {repeatWeeks > 0 ? `Добавить на ${repeatWeeks} нед.` : 'Добавить смену'}
+              </button>
+            </div>
+
+            {(() => {
+              const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+              const upcoming = adminEmpPlanned.filter(s => s.planned_date >= todayStr);
+              const past = adminEmpPlanned.filter(s => s.planned_date < todayStr);
+              return (
+                <>
+                  <div className="shifts-list">
+                    {upcoming.length === 0 ? (
+                      <div className="empty">
+                        <div className="empty-icon">📅</div>
+                        <span className="empty-title">Предстоящих смен нет</span>
+                        <span className="empty-subtitle">Добавьте смену выше</span>
+                      </div>
+                    ) : upcoming.map(shift => (
+                      <div key={shift.id} id={`shift-${shift.id}`} className="shift-item">
+                        <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+                        <div className="shift-info">
+                          <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+                          {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+                        </div>
+                        <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                  {past.length > 0 && (
+                    <details className="past-shifts-section">
+                      <summary className="past-shifts-toggle">Прошедшие ({past.length})</summary>
+                      <div className="shifts-list" style={{marginTop: 8}}>
+                        {past.map(shift => (
+                          <div key={shift.id} id={`shift-${shift.id}`} className="shift-item shift-item--past">
+                            <div className="shift-date">{shift.planned_date.slice(8, 10)}.{shift.planned_date.slice(5, 7)}</div>
+                            <div className="shift-info">
+                              <span className="shift-time">{shift.shift_start} — {shift.shift_end}</span>
+                              {shift.note ? <span className="shift-hours">{shift.note}</span> : null}
+                            </div>
+                            <button className="delete-btn" onClick={() => deletePlannedShift(shift.id)}>✕</button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
 
       </div>
 
