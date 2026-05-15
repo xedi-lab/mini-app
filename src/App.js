@@ -402,6 +402,16 @@ function App() {
       setLoading(false);
     } catch {
       setEmployee(null);
+      try {
+        const adminRes = await fetch(withCid(`/admin/me?uid=${id}`));
+        const adminData = await adminRes.json();
+        if (adminData.is_admin) {
+          setIsAdmin(true);
+          setScreen('admin');
+          setLoading(false);
+          return;
+        }
+      } catch {}
       if (!ADMIN_IDS.includes(id)) await checkRegStatus(id);
       setLoading(false);
     }
