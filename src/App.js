@@ -463,7 +463,7 @@ const fetchWorkedShifts = async (id) => {
     try {
       const res = await fetch(`${API}/employee/${userId}/shift/open`, { method: 'POST' });
       const data = await res.json();
-      if (data.success) { showMessage(`✅ Смена открыта в ${data.time} (НСК)`); fetchStats(userId); }
+      if (data.success) { showMessage(`✅ Присутствие подтверждено в ${data.confirmed_at} (НСК)`); fetchStats(userId); }
       else showMessage(data.error, 'error');
     } catch { showMessage('Ошибка соединения', 'error'); }
     setShiftLoading(false);
@@ -661,9 +661,9 @@ const fetchWorkedShifts = async (id) => {
                   <span className="hero-name">{employee.first_name}</span>
                   <span className="hero-workplace">{employee.workplace}</span>
                 </div>
-                <div className={`hero-status-badge ${stats?.on_shift ? 'on' : 'off'}`}>
+                <div className={`hero-status-badge ${stats?.on_shift ? (stats?.open_shift?.confirmed_at ? 'on' : 'pending') : 'off'}`}>
                   <span className={`hero-status-dot ${stats?.on_shift ? 'active' : ''}`}></span>
-                  {stats?.on_shift ? 'На смене' : 'Не на смене'}
+                  {stats?.on_shift ? (stats?.open_shift?.confirmed_at ? 'На смене' : 'Ожидает подтверждения') : 'Не на смене'}
                 </div>
               </div>
 
@@ -679,15 +679,15 @@ const fetchWorkedShifts = async (id) => {
             </div>
 
             {/* ACTION BUTTON */}
-            {stats?.on_shift ? (
+            {stats?.on_shift && stats?.open_shift?.confirmed_at ? (
               <button className="action-btn action-btn--close" onClick={() => setConfirmClose(true)} disabled={shiftLoading}>
                 {shiftLoading ? '...' : 'Завершить смену'}
               </button>
-            ) : (
+            ) : stats?.on_shift && !stats?.open_shift?.confirmed_at ? (
               <button className="action-btn action-btn--open" onClick={openShift} disabled={shiftLoading}>
-                {shiftLoading ? '...' : 'Начать смену'}
+                {shiftLoading ? '...' : 'Подтвердить присутствие'}
               </button>
-            )}
+            ) : null}
 
             {/* STATS */}
             <div className="stats-row">
