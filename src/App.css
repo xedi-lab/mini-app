@@ -111,7 +111,10 @@
 /* Дата-пикер — выбранный день в тёмной теме: белый фон → чёрный текст */
 [data-theme="dark"] .date-picker-day.selected .date-picker-dayname,
 [data-theme="dark"] .date-picker-day.selected .date-picker-daynum,
-[data-theme="dark"] .date-picker-day.selected .date-picker-month {
+[data-theme="dark"] .date-picker-day.selected .date-picker-month,
+[data-theme="dark"] .date-picker-day.today.selected .date-picker-dayname,
+[data-theme="dark"] .date-picker-day.today.selected .date-picker-daynum,
+[data-theme="dark"] .date-picker-day.today.selected .date-picker-month {
   color: #000;
 }
 
