@@ -159,11 +159,16 @@ body {
 
 .screen-loader-overlay {
   position: fixed; inset: 0;
-  background: rgba(242,242,247,0.75);
+  background: rgba(242,242,247,0.6);
   display: flex; align-items: center; justify-content: center;
   z-index: 500;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   animation: fadeIn 0.15s ease;
+}
+
+[data-theme="dark"] .screen-loader-overlay {
+  background: rgba(28,28,30,0.6);
 }
 
 .screen-loader-spinner {
@@ -2429,6 +2434,13 @@ details[open] .past-shifts-toggle::before { transform: rotate(90deg); }
 /* ============================================
    ADMIN HOME MENU
    ============================================ */
+
+.admin-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
 .admin-home {
   display: flex;

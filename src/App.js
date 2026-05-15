@@ -291,35 +291,20 @@ function App() {
   const [showAdjForm, setShowAdjForm] = useState(false);
 
   // ТЕМА
-  const getTgScheme = () => {
-    try { return WebApp.colorScheme || null; } catch { return null; }
+  const getTgScheme = () => { try { return WebApp.colorScheme || null; } catch { return null; } };
+  const getSavedMode = () => { const s = localStorage.getItem('themeMode'); return s || 'auto'; };
+  const applyTheme = (mode) => {
+    const resolved = mode === 'auto' ? (getTgScheme() || 'light') : mode;
+    document.documentElement.setAttribute('data-theme', resolved);
   };
-  const getInitialTheme = () => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return getTgScheme() || 'light';
-  };
-  const [theme, setTheme] = useState(getInitialTheme);
+  const [themeMode, setThemeModeState] = useState(getSavedMode);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'light' || theme === 'dark') localStorage.setItem('theme', theme);
-  }, [theme]);
+  useEffect(() => { applyTheme(themeMode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setThemeMode = (mode) => {
-    if (mode === 'auto') {
-      const tg = getTgScheme() || 'light';
-      localStorage.removeItem('theme');
-      setTheme(tg);
-    } else {
-      setTheme(mode);
-    }
-  };
-
-  const currentThemeMode = () => {
-    const saved = localStorage.getItem('theme');
-    if (!saved) return 'auto';
-    return saved;
+    localStorage.setItem('themeMode', mode);
+    setThemeModeState(mode);
+    applyTheme(mode);
   };
 
   useEffect(() => {
@@ -1007,9 +992,9 @@ const fetchWorkedShifts = async (id) => {
                     </div>
                     <div className="settings-row-right">
                       <div className="theme-toggle">
-                        <button className={`theme-toggle-btn ${currentThemeMode() === 'auto' ? 'active' : ''}`} onClick={() => setThemeMode('auto')}>Авто</button>
-                        <button className={`theme-toggle-btn ${currentThemeMode() === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}>☀️</button>
-                        <button className={`theme-toggle-btn ${currentThemeMode() === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}>🌙</button>
+                        <button className={`theme-toggle-btn ${themeMode === 'auto' ? 'active' : ''}`} onClick={() => setThemeMode('auto')}>Авто</button>
+                        <button className={`theme-toggle-btn ${themeMode === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}>☀️</button>
+                        <button className={`theme-toggle-btn ${themeMode === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}>🌙</button>
                       </div>
                     </div>
                   </div>
@@ -1085,7 +1070,14 @@ const fetchWorkedShifts = async (id) => {
         {screen === 'admin' && isAdmin && !selectedEmployee && (
           <div className="screen">
             {!adminTab ? (
-              <h2 className="screen-title">Управление</h2>
+              <div className="admin-home-header">
+                <h2 className="screen-title">Управление</h2>
+                <div className="theme-toggle">
+                  <button className={`theme-toggle-btn ${themeMode === 'auto' ? 'active' : ''}`} onClick={() => setThemeMode('auto')}>Авто</button>
+                  <button className={`theme-toggle-btn ${themeMode === 'light' ? 'active' : ''}`} onClick={() => setThemeMode('light')}>☀️</button>
+                  <button className={`theme-toggle-btn ${themeMode === 'dark' ? 'active' : ''}`} onClick={() => setThemeMode('dark')}>🌙</button>
+                </div>
+              </div>
             ) : (
               <div className="screen-header">
                 <button className="back-btn" onClick={() => setAdminTab(null)}>← Назад</button>
