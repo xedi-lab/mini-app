@@ -261,6 +261,14 @@ function App() {
     return `${API}${path}${sep}cid=${companyId.current}`;
   };
 
+  // добавляет cid + uid (для admin-роутов)
+  const withAdmin = (path) => {
+    const withC = withCid(path);
+    if (!userId) return withC;
+    const sep = withC.includes('?') ? '&' : '?';
+    return `${withC}${sep}uid=${userId}`;
+  };
+
   const [userId, setUserId] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [stats, setStats] = useState(null);
@@ -505,7 +513,7 @@ function App() {
 
   const fetchAdminStats = async () => {
     try {
-      const res = await fetch(withCid(`/admin/stats`));
+      const res = await fetch(withAdmin(`/admin/stats`));
       const data = await res.json();
       setAdminStats(data);
     } catch {}
@@ -513,7 +521,7 @@ function App() {
 
   const fetchAdminDashboard = async () => {
     try {
-      const res = await fetch(withCid(`/admin/dashboard`));
+      const res = await fetch(withAdmin(`/admin/dashboard`));
       const data = await res.json();
       setAdminDashboard(data);
     } catch {}
@@ -522,8 +530,8 @@ function App() {
   const fetchAdminEmpData = async (emp) => {
     try {
       const [shiftsRes, plannedRes] = await Promise.all([
-        fetch(withCid(`/admin/employee/${emp.telegram_id}/shifts`)),
-        fetch(withCid(`/admin/employee/${emp.telegram_id}/planned`))
+        fetch(withAdmin(`/admin/employee/${emp.telegram_id}/shifts`)),
+        fetch(withAdmin(`/admin/employee/${emp.telegram_id}/planned`))
       ]);
       setAdminEmpShifts(await shiftsRes.json());
       setAdminEmpPlanned(await plannedRes.json());
@@ -533,7 +541,7 @@ function App() {
 
   const fetchAdjustments = async (telegramId, month) => {
     try {
-      const res = await fetch(withCid(`/admin/employee/${telegramId}/adjustments?month=${month}`));
+      const res = await fetch(withAdmin(`/admin/employee/${telegramId}/adjustments?month=${month}`));
       const data = await res.json();
       setAdjustments(Array.isArray(data) ? data : []);
     } catch {}
@@ -541,7 +549,7 @@ function App() {
 
   const fetchNoShows = async (telegramId, month) => {
     try {
-      const res = await fetch(withCid(`/admin/employee/${telegramId}/no-shows?month=${month}`));
+      const res = await fetch(withAdmin(`/admin/employee/${telegramId}/no-shows?month=${month}`));
       const data = await res.json();
       setNoShows(Array.isArray(data) ? data : []);
     } catch {}
@@ -549,7 +557,7 @@ function App() {
 
   const fetchPayroll = async (month) => {
     try {
-      const res = await fetch(withCid(`/admin/payroll?month=${month}`));
+      const res = await fetch(withAdmin(`/admin/payroll?month=${month}`));
       const data = await res.json();
       setPayrollData(data);
     } catch {}
@@ -559,7 +567,7 @@ function App() {
     if (!newAdj.amount) return showMessage('Введи сумму', 'error');
     const amount = newAdj.type === 'bonus' ? Math.abs(parseFloat(newAdj.amount)) : -Math.abs(parseFloat(newAdj.amount));
     try {
-      await fetch(`${API}/admin/adjustment`, {
+      await fetch(withAdmin(`/admin/adjustment`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -579,7 +587,7 @@ function App() {
 
   const deleteAdjustment = async (id) => {
     try {
-      await fetch(`${API}/admin/adjustment/${id}`, { method: 'DELETE' });
+      await fetch(withAdmin(`/admin/adjustment/${id}`), { method: 'DELETE' });
       showMessage('✅ Удалено');
       fetchAdjustments(selectedEmployee.telegram_id, payrollMonth);
     } catch { showMessage('Ошибка', 'error'); }
@@ -590,7 +598,7 @@ function App() {
     const start = newShift.start || '09:00';
     const end = newShift.end || '21:00';
     try {
-      await fetch(`${API}/admin/planned-shift/repeat`, {
+      await fetch(withAdmin(`/admin/planned-shift/repeat`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -651,7 +659,7 @@ function App() {
 
   const saveEmployeeEdit = async () => {
     try {
-      await fetch(withCid(`/admin/employee/${selectedEmployee.telegram_id}`), {
+      await fetch(withAdmin(`/admin/employee/${selectedEmployee.telegram_id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hourly_rate: editRate, workplace: editWorkplace })
@@ -668,7 +676,7 @@ function App() {
     const start = newShift.start || '09:00';
     const end = newShift.end || '21:00';
     try {
-      await fetch(`${API}/admin/planned-shift`, {
+      await fetch(withAdmin(`/admin/planned-shift`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -699,7 +707,7 @@ function App() {
       el.style.overflow = 'hidden';
       await new Promise(r => setTimeout(r, 320));
     }
-    await fetch(`${API}/admin/planned-shift/${id}`, { method: 'DELETE' });
+    await fetch(withAdmin(`/admin/planned-shift/${id}`), { method: 'DELETE' });
     fetchAdminEmpData(selectedEmployee);
     fetchPlanned(selectedEmployee.telegram_id);
   };
@@ -1431,7 +1439,7 @@ function App() {
                     <div className="payroll-grand-total">
                       Итого: {payrollData.employees.reduce((s, e) => s + parseFloat(e.total || 0), 0).toFixed(0)} ₽
                     </div>
-                    <button className="action-btn action-btn--open" onClick={() => window.open(withCid(`/admin/export/payroll?month=${payrollMonth}`), '_blank')}>
+                    <button className="action-btn action-btn--open" onClick={() => window.open(withAdmin(`/admin/export/payroll?month=${payrollMonth}`), '_blank')}>
                       📥 Скачать Excel
                     </button>
                   </React.Fragment>
@@ -1501,7 +1509,7 @@ function App() {
               <button className="btn-secondary" onClick={() => setEditMode(true)}>✏️ Редактировать</button>
               {selectedEmployee.on_shift && (
                 <button className="btn-secondary btn-secondary--danger" onClick={async () => {
-                  await fetch(withCid(`/admin/reset-shift/${selectedEmployee.telegram_id}`));
+                  await fetch(withAdmin(`/admin/reset-shift/${selectedEmployee.telegram_id}`));
                   showMessage('✅ Смена сброшена');
                   fetchAdminStats();
                   setSelectedEmployee({...selectedEmployee, on_shift: false});
