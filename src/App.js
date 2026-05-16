@@ -738,7 +738,18 @@ function App() {
     return { ...next, label, isTomorrow, isToday };
   };
 
-  if (loading) return <div className="loader-screen"><div className="loader"></div></div>;
+  if (loading) return (
+    <div className="loader-screen">
+      <div className="splash-logo">
+        {'Work'.split('').map((c, i) => (
+          <span key={i} className="splash-letter">{c}</span>
+        ))}
+        <span className="splash-letter green">i</span>
+        <span className="splash-letter green">x</span>
+      </div>
+      <div className="loader"></div>
+    </div>
+  );
 
   if (companyFrozen) return (
     <div className="onboarding">
@@ -829,6 +840,12 @@ function App() {
           </div>
         </div>
       )}
+
+      <header className="app-header">
+        <div className="app-header-logo">
+          <span className="app-header-work">Work</span><span className="app-header-ix">ix</span>
+        </div>
+      </header>
 
       <div className="content">
 

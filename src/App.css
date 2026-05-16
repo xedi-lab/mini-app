@@ -201,19 +201,102 @@ body {
   background: var(--bg);
 }
 
+/* APP HEADER */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 12px 20px 10px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.app-header-logo {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.app-header-work {
+  color: var(--text-primary);
+}
+
+.app-header-ix {
+  color: #22c55e;
+}
+
 /* LOADER */
 .loader-screen {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 28px;
   min-height: 100vh;
-  background: var(--bg);
+  background: #0e0e0e;
+}
+
+/* Workix splash logo */
+.splash-logo {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+
+.splash-letter {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: letterSlideIn 0.32s ease forwards;
+}
+
+.splash-letter.green {
+  color: #22c55e;
+  position: relative;
+}
+
+.splash-letter.green::before {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+  border-radius: 50%;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-24px);
+  opacity: 0;
+  animation: dotFall 0.26s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+}
+
+/* stagger delays per letter: W o r k i x */
+.splash-letter:nth-child(1) { animation-delay: 0.05s; }
+.splash-letter:nth-child(2) { animation-delay: 0.10s; }
+.splash-letter:nth-child(3) { animation-delay: 0.15s; }
+.splash-letter:nth-child(4) { animation-delay: 0.20s; }
+.splash-letter:nth-child(5) { animation-delay: 0.25s; }
+.splash-letter:nth-child(5)::before { animation-delay: 0.52s; }
+.splash-letter:nth-child(6) { animation-delay: 0.30s; }
+
+@keyframes letterSlideIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dotFall {
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .loader {
-  width: 36px; height: 36px;
-  border: 2.5px solid var(--border-strong);
-  border-top-color: var(--accent);
+  width: 28px; height: 28px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: #22c55e;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
