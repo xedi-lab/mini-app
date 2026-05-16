@@ -371,7 +371,7 @@ function App() {
       setUserId(detectedId);
       const isMasterAdmin = ADMIN_IDS.includes(detectedId);
       setIsAdmin(isMasterAdmin);
-      if (isMasterAdmin) fetchAdminDashboard();
+      if (isMasterAdmin) fetchAdminDashboard(detectedId);
       fetchEmployee(detectedId);
     } else {
       debug += `FINAL: Could not detect user ID\n`;
@@ -430,7 +430,7 @@ function App() {
         if (adminData.is_admin) {
           setIsAdmin(true);
           setLoading(false);
-          fetchAdminDashboard();
+          fetchAdminDashboard(id);
           return;
         }
       } catch {}
@@ -511,18 +511,28 @@ function App() {
     } catch {}
   };
 
-  const fetchAdminStats = async () => {
+  const buildAdminUrl = (path, explicitUid) => {
+    const uid = explicitUid || userId;
+    const withC = withCid(path);
+    if (!uid) return withC;
+    const sep = withC.includes('?') ? '&' : '?';
+    return `${withC}${sep}uid=${uid}`;
+  };
+
+  const fetchAdminStats = async (explicitUid) => {
     try {
-      const res = await fetch(withAdmin(`/admin/stats`));
+      const res = await fetch(buildAdminUrl(`/admin/stats`, explicitUid));
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setAdminStats(data);
     } catch {}
   };
 
-  const fetchAdminDashboard = async () => {
+  const fetchAdminDashboard = async (explicitUid) => {
     try {
-      const res = await fetch(withAdmin(`/admin/dashboard`));
+      const res = await fetch(buildAdminUrl(`/admin/dashboard`, explicitUid));
       const data = await res.json();
+      if (!data?.summary) return;
       setAdminDashboard(data);
     } catch {}
   };
